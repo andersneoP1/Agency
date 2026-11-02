@@ -127,3 +127,4 @@ class BookingControllerIT {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML));
     }
 }
+

@@ -86,3 +86,4 @@ public class Hotel {
         this.updatedAt = Instant.now();
     }
 }
+

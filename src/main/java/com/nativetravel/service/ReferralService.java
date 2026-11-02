@@ -31,3 +31,4 @@ public interface ReferralService {
      */
     ReferralDto getReferralInfo(String userEmail);
 }
+

@@ -15,3 +15,4 @@ public interface BookingMapper {
     @Mapping(target = "qrCodeBase64", expression = "java(booking.getQrCode() != null ? booking.getQrCode().getQrData() : null)")
     BookingDto toDto(Booking booking);
 }
+

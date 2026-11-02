@@ -46,3 +46,4 @@ public interface ProfileService {
      */
     List<TourDto> getViewedTours(String userEmail);
 }
+

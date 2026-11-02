@@ -22,3 +22,4 @@ public record PromoCodeValidateRequest(
         BigDecimal orderAmount
 ) {
 }
+

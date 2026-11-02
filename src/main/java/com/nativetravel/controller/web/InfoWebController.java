@@ -26,3 +26,4 @@ public class InfoWebController {
         return "pages/info/faq";
     }
 }
+

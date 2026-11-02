@@ -42,3 +42,4 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
      */
     long countByApprovedFalse();
 }
+

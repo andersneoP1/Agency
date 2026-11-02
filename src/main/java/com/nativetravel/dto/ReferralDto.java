@@ -25,3 +25,4 @@ public record ReferralDto(
         int earnedRewardsCount
 ) {
 }
+

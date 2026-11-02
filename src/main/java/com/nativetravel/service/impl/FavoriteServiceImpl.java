@@ -104,3 +104,4 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .map(tourMapper::toDto);
     }
 }
+

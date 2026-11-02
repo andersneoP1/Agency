@@ -71,3 +71,4 @@ class ComparisonServiceTest {
         assertThat(result).extracting(TourDto::title).containsExactly("Тур 1", "Тур 2");
     }
 }
+

@@ -25,3 +25,4 @@ public interface SurveyService {
      */
     SurveyResponse getLatestRecommendation(String userEmail);
 }
+

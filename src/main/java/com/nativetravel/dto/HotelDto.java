@@ -35,3 +35,4 @@ public record HotelDto(
         String imageUrl
 ) {
 }
+

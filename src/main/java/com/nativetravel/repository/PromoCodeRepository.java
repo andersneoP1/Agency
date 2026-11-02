@@ -22,3 +22,4 @@ public interface PromoCodeRepository extends JpaRepository<PromoCode, Long> {
      */
     Optional<PromoCode> findByCodeIgnoreCaseAndActiveTrue(String code);
 }
+

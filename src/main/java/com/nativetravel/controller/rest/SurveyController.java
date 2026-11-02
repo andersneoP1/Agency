@@ -65,3 +65,4 @@ public class SurveyController {
         return ResponseEntity.ok(surveyService.getLatestRecommendation(principal.getName()));
     }
 }
+

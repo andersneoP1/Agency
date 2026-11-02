@@ -185,3 +185,4 @@ public class AdminController {
         return ResponseEntity.ok(MessageResponse.of("Статус бронирования обновлен на " + status));
     }
 }
+

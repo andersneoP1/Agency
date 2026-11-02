@@ -46,3 +46,4 @@ public interface FlightService {
      */
     List<String> getArrivalCities();
 }
+

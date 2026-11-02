@@ -59,3 +59,4 @@ public interface TourService {
      */
     void recordTourView(Long tourId, String userEmail);
 }
+

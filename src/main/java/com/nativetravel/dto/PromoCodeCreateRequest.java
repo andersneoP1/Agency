@@ -40,3 +40,4 @@ public record PromoCodeCreateRequest(
         Integer validDays
 ) {
 }
+

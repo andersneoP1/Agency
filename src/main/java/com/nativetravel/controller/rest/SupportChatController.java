@@ -66,3 +66,4 @@ public class SupportChatController {
         return ResponseEntity.ok(supportChatService.escalateToOperator(sessionId));
     }
 }
+

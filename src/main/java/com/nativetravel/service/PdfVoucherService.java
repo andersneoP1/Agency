@@ -15,3 +15,4 @@ public interface PdfVoucherService {
      */
     byte[] generateBookingVoucherPdf(Booking booking);
 }
+

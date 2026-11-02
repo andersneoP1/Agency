@@ -100,3 +100,4 @@ class SubscriptionServiceTest {
         verify(emailService).sendHotOffersNewsletter(eq("sub2@example.com"), contains("Тур в Дубай"));
     }
 }
+

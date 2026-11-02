@@ -122,3 +122,4 @@ public class ProfileServiceImpl implements ProfileService {
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь " + email + " не найден"));
     }
 }
+

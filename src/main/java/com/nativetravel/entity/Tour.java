@@ -113,3 +113,4 @@ public class Tour {
         this.updatedAt = Instant.now();
     }
 }
+

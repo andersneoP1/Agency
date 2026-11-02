@@ -102,3 +102,4 @@ class InfoAndCommunicationsIT {
                 .andExpect(status().isForbidden());
     }
 }
+

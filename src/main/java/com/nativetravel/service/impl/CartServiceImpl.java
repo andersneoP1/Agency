@@ -127,3 +127,4 @@ public class CartServiceImpl implements CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь с email " + email + " не найден"));
     }
 }
+

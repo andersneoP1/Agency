@@ -35,3 +35,4 @@ public record PromoCodeDto(
         Boolean active
 ) {
 }
+

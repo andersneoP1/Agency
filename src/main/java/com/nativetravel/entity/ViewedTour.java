@@ -54,3 +54,4 @@ public class ViewedTour {
         this.viewedAt = Instant.now();
     }
 }
+

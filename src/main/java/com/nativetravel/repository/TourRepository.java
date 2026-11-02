@@ -25,8 +25,6 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
      */
     Page<Tour> findByHotOfferTrue(Pageable pageable);
 
-    List<Tour> findByHotOfferTrue();
-
     /**
      * Получение списка всех уникальных стран из базы.
      *
@@ -35,3 +33,4 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
     @Query("SELECT DISTINCT t.country FROM Tour t ORDER BY t.country ASC")
     List<String> findDistinctCountries();
 }
+

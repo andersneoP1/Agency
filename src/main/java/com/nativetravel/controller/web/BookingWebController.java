@@ -103,3 +103,4 @@ public class BookingWebController {
         return "pages/booking/success";
     }
 }
+

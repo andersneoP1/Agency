@@ -94,3 +94,4 @@ class ReferralServiceTest {
         assertThat(info.invitedFriends()).containsExactly("Борис Иванов");
     }
 }
+

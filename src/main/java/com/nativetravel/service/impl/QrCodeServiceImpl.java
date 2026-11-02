@@ -38,3 +38,4 @@ public class QrCodeServiceImpl implements QrCodeService {
         return "data:image/png;base64," + Base64.getEncoder().encodeToString(pngData);
     }
 }
+

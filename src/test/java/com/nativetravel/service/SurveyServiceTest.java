@@ -92,3 +92,4 @@ class SurveyServiceTest {
         assertThat(response.recommendedTour().id()).isEqualTo(1L);
     }
 }
+

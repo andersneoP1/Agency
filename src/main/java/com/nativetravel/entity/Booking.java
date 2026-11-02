@@ -109,3 +109,4 @@ public class Booking {
         updatedAt = Instant.now();
     }
 }
+

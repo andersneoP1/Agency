@@ -20,3 +20,4 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
     @Query("SELECT s FROM Survey s LEFT JOIN FETCH s.recommendedTour t LEFT JOIN FETCH t.hotel WHERE s.user.id = :userId ORDER BY s.createdAt DESC LIMIT 1")
     Optional<Survey> findLatestByUserId(@Param("userId") Long userId);
 }
+

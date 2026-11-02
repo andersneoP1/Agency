@@ -107,3 +107,4 @@ class SupportChatServiceTest {
         assertThat(result.message()).contains("эскалировано");
     }
 }
+

@@ -17,3 +17,4 @@ public interface ComparisonService {
      */
     List<TourDto> compareTours(List<Long> tourIds);
 }
+

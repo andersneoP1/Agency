@@ -104,3 +104,4 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь " + email + " не найден"));
     }
 }
+

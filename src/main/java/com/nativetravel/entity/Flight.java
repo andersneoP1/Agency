@@ -76,3 +76,4 @@ public class Flight {
         this.createdAt = Instant.now();
     }
 }
+

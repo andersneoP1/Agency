@@ -21,3 +21,4 @@ public record BookingRequest(
         PaymentMethod paymentMethod
 ) {
 }
+

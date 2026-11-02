@@ -101,3 +101,4 @@ class ProfileControllerIT {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML));
     }
 }
+

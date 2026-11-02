@@ -15,3 +15,4 @@ public interface PromoCodeMapper {
 
     PromoCode toEntity(PromoCodeDto dto);
 }
+

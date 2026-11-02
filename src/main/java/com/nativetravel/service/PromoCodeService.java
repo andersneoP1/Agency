@@ -35,3 +35,4 @@ public interface PromoCodeService {
      */
     void incrementUses(PromoCode promoCode);
 }
+

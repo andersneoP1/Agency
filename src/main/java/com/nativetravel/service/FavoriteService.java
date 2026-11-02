@@ -43,3 +43,4 @@ public interface FavoriteService {
      */
     Page<TourDto> getUserFavorites(String userEmail, Pageable pageable);
 }
+

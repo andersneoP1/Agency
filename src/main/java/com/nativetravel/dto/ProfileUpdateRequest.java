@@ -23,3 +23,4 @@ public record ProfileUpdateRequest(
         String phone
 ) {
 }
+

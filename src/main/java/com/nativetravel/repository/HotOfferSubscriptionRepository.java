@@ -23,3 +23,4 @@ public interface HotOfferSubscriptionRepository extends JpaRepository<HotOfferSu
 
     boolean existsByTelegramChatId(Long telegramChatId);
 }
+

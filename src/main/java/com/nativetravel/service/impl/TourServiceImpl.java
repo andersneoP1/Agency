@@ -51,9 +51,6 @@ public class TourServiceImpl implements TourService {
     @Override
     @Transactional(readOnly = true)
     public Page<TourDto> getTours(TourFilterRequest filter) {
-        if (filter == null) {
-            filter = TourFilterRequest.defaultFilter();
-        }
         log.debug("Fetching tours with filter: {}", filter);
 
         Sort.Direction direction = filter.isAscending() ? Sort.Direction.ASC : Sort.Direction.DESC;
@@ -180,3 +177,4 @@ public class TourServiceImpl implements TourService {
         };
     }
 }
+

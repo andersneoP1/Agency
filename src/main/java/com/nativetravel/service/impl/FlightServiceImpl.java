@@ -127,3 +127,4 @@ public class FlightServiceImpl implements FlightService {
         return flightRepository.findDistinctArrivalCities();
     }
 }
+

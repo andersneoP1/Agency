@@ -17,3 +17,4 @@ public record SurveyResponse(
         String recommendationReason
 ) {
 }
+

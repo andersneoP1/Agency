@@ -45,10 +45,6 @@ public record TourFilterRequest(
         @Schema(description = "Количество элементов на странице", example = "9")
         Integer size
 ) {
-    public static TourFilterRequest defaultFilter() {
-        return new TourFilterRequest(null, null, null, null, null, null, null, "price", "asc", 0, 20);
-    }
-
     public int getPageNumber() {
         return (page != null && page >= 0) ? page : 0;
     }

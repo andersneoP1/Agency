@@ -17,3 +17,4 @@ public interface ReviewMapper {
     @Mapping(target = "authorName", expression = "java(review.getUser() != null ? review.getUser().getFullName() : \"Аноним\")")
     ReviewDto toDto(Review review);
 }
+

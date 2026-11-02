@@ -7,3 +7,4 @@ public enum CartItemType {
     TOUR,
     FLIGHT
 }
+

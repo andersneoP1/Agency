@@ -31,3 +31,4 @@ public interface ReferralRepository extends JpaRepository<Referral, Long> {
      */
     long countByReferrerId(Long referrerId);
 }
+

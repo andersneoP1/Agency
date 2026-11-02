@@ -95,3 +95,4 @@ public interface AdminService {
      */
     void updateBookingStatus(Long bookingId, BookingStatus newStatus);
 }
+

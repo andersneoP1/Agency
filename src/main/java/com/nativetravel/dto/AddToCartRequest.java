@@ -22,3 +22,4 @@ public record AddToCartRequest(
         return (quantity != null && quantity >= 1) ? quantity : 1;
     }
 }
+

@@ -66,9 +66,6 @@ class BookingServiceTest {
     private EmailService emailService;
 
     @Mock
-    private ReferralService referralService;
-
-    @Mock
     private BookingMapper bookingMapper;
 
     @InjectMocks
@@ -141,3 +138,4 @@ class BookingServiceTest {
         assertThat(sampleTour.getAvailableSlots()).isEqualTo(9);
     }
 }
+

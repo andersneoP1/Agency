@@ -18,3 +18,4 @@ public interface SupportMessageRepository extends JpaRepository<SupportMessage, 
 
     List<SupportMessage> findByEscalatedTrueOrderByCreatedAtDesc();
 }
+

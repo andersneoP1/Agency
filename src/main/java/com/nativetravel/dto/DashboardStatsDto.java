@@ -35,3 +35,4 @@ public record DashboardStatsDto(
         Map<String, BigDecimal> monthlyRevenue
 ) {
 }
+

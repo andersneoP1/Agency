@@ -126,3 +126,4 @@ public class SurveyServiceImpl implements SurveyService {
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь " + email + " не найден"));
     }
 }
+

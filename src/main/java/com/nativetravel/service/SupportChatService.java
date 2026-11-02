@@ -35,3 +35,4 @@ public interface SupportChatService {
      */
     SupportMessageDto escalateToOperator(String sessionId);
 }
+

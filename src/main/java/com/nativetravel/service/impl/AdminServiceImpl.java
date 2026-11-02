@@ -320,3 +320,4 @@ public class AdminServiceImpl implements AdminService {
         log.info("Admin updated booking #{} status to {}", booking.getBookingNumber(), newStatus);
     }
 }
+

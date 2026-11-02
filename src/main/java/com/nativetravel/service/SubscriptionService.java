@@ -30,3 +30,4 @@ public interface SubscriptionService {
      */
     int broadcastHotOffers();
 }
+

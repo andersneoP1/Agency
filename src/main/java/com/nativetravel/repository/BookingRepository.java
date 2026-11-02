@@ -63,3 +63,4 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
            "WHERE b.bookingNumber = :bookingNumber")
     Optional<Booking> findByBookingNumberWithDetails(@Param("bookingNumber") String bookingNumber);
 }
+

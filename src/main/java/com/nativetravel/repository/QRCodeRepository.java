@@ -17,3 +17,4 @@ public interface QRCodeRepository extends JpaRepository<QRCode, Long> {
      */
     Optional<QRCode> findByBookingId(Long bookingId);
 }
+

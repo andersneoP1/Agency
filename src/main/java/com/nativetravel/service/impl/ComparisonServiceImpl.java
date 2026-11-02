@@ -42,3 +42,4 @@ public class ComparisonServiceImpl implements ComparisonService {
                 .toList();
     }
 }
+

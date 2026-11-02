@@ -68,3 +68,4 @@ public record TourCreateRequest(
         int availableSlots
 ) {
 }
+

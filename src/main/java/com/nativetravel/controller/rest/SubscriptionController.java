@@ -60,3 +60,4 @@ public class SubscriptionController {
         return ResponseEntity.ok(MessageResponse.of("Рассылка успешно отправлена. Получателей: " + count));
     }
 }
+

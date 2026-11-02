@@ -25,3 +25,4 @@ public interface QrCodeService {
      */
     String generateQrCodeBase64(String content, int width, int height);
 }
+

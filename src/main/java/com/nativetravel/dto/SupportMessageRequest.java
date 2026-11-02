@@ -19,3 +19,4 @@ public record SupportMessageRequest(
         String message
 ) {
 }
+

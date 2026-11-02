@@ -38,3 +38,4 @@ public record FlightFilterRequest(
         return (size != null && size > 0 && size <= 50) ? size : 10;
     }
 }
+

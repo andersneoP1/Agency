@@ -35,3 +35,4 @@ public interface FlightRepository extends JpaRepository<Flight, Long>, JpaSpecif
     @Query("SELECT DISTINCT f.arrivalCity FROM Flight f ORDER BY f.arrivalCity ASC")
     List<String> findDistinctArrivalCities();
 }
+

@@ -16,3 +16,4 @@ public record SubscriptionRequest(
         Long telegramChatId
 ) {
 }
+

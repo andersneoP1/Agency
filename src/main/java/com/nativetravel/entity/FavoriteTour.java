@@ -58,3 +58,4 @@ public class FavoriteTour {
         this.createdAt = Instant.now();
     }
 }
+

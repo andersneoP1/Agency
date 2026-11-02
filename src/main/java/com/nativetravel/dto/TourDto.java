@@ -53,3 +53,4 @@ public record TourDto(
         int availableSlots
 ) {
 }
+

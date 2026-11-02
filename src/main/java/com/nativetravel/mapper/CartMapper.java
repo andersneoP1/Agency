@@ -15,3 +15,4 @@ public interface CartMapper {
     @Mapping(target = "subtotalPrice", expression = "java(cartItem.getItemPrice())")
     CartItemDto toDto(CartItem cartItem);
 }
+

@@ -36,3 +36,4 @@ public interface FavoriteTourRepository extends JpaRepository<FavoriteTour, Long
      */
     void deleteByUserAndTour(User user, Tour tour);
 }
+

@@ -28,3 +28,4 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
      */
     List<Hotel> findByStars(int stars);
 }
+

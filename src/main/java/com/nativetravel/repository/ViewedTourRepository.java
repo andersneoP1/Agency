@@ -26,3 +26,4 @@ public interface ViewedTourRepository extends JpaRepository<ViewedTour, Long> {
      */
     Optional<ViewedTour> findByUserAndTour(User user, Tour tour);
 }
+

@@ -116,3 +116,4 @@ public class CatalogWebController {
         return "pages/catalog/favorites";
     }
 }
+
