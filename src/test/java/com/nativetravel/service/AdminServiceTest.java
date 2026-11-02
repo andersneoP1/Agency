@@ -1,5 +1,6 @@
 package com.nativetravel.service;
 
+import com.nativetravel.dto.BookingDto;
 import com.nativetravel.dto.DashboardStatsDto;
 import com.nativetravel.dto.HotelCreateRequest;
 import com.nativetravel.dto.HotelDto;
@@ -149,5 +150,55 @@ class AdminServiceTest {
 
         assertThat(user.isEnabled()).isFalse();
         verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("Удаление тура вызывает tourRepository.deleteById")
+    void deleteTour_deletesTour() {
+        when(tourRepository.existsById(10L)).thenReturn(true);
+
+        adminService.deleteTour(10L);
+
+        verify(tourRepository).deleteById(10L);
+    }
+
+    @Test
+    @DisplayName("Удаление отеля вызывает hotelRepository.deleteById")
+    void deleteHotel_deletesHotel() {
+        when(hotelRepository.existsById(5L)).thenReturn(true);
+
+        adminService.deleteHotel(5L);
+
+        verify(hotelRepository).deleteById(5L);
+    }
+
+    @Test
+    @DisplayName("Создание промокода в админке")
+    void createPromoCode_savesPromoCode() {
+        PromoCodeCreateRequest req = new PromoCodeCreateRequest("SUMMER30", 30, BigDecimal.valueOf(20000), 100, 30);
+        PromoCode promo = PromoCode.builder().id(1L).code("SUMMER30").discountPercent(30).build();
+        PromoCodeDto dto = new PromoCodeDto(1L, "SUMMER30", 30, BigDecimal.valueOf(20000), 100, 0, null, true);
+
+        when(promoCodeRepository.findByCodeIgnoreCase("SUMMER30")).thenReturn(Optional.empty());
+        when(promoCodeRepository.save(any(PromoCode.class))).thenReturn(promo);
+        when(promoCodeMapper.toDto(promo)).thenReturn(dto);
+
+        PromoCodeDto result = adminService.createPromoCode(req);
+
+        assertThat(result).isNotNull();
+        assertThat(result.code()).isEqualTo("SUMMER30");
+    }
+
+    @Test
+    @DisplayName("Обновление статуса бронирования")
+    void updateBookingStatus_updatesStatus() {
+        Booking booking = Booking.builder().id(1L).status(BookingStatus.PENDING).build();
+        when(bookingRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(booking)).thenReturn(booking);
+
+        adminService.updateBookingStatus(1L, BookingStatus.PAID);
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.PAID);
+        verify(bookingRepository).save(booking);
     }
 }

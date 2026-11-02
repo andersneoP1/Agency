@@ -66,6 +66,9 @@ class BookingServiceTest {
     private EmailService emailService;
 
     @Mock
+    private ReferralService referralService;
+
+    @Mock
     private BookingMapper bookingMapper;
 
     @InjectMocks

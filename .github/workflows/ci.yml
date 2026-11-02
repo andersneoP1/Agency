@@ -68,7 +68,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Trigger Render Deploy Hook
-        if: env.RENDER_DEPLOY_HOOK_URL != ''
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |

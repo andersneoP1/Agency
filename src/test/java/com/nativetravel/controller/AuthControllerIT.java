@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -34,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("local")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AuthControllerIT {
 
     @Autowired
@@ -55,7 +57,9 @@ class AuthControllerIT {
     void cleanUp() {
         rateLimitService.reset();
         passwordResetCodeRepository.deleteAll();
-        userRepository.deleteAll();
+        userRepository.findAll().stream()
+                .filter(u -> u.getEmail().endsWith("@example.com"))
+                .forEach(userRepository::delete);
     }
 
     @Test
