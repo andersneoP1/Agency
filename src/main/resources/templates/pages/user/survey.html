@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Подбор тура'})}">
+    <title>Подбор тура мечты | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" x-data="surveyApp()">
+
+    <!-- Header Navigation -->
+    <header th:replace="~{fragments/navbar :: navbar('survey')}"></header>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 py-4">
+        <div class="container">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Главная</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/profile}" class="text-decoration-none">Профиль</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Подбор тура</li>
+                </ol>
+            </nav>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <!-- Title Banner -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-primary text-white text-center">
+                        <i class="bi bi-stars display-4 text-warning mb-2"></i>
+                        <h2 class="fw-bold mb-2">Умный подбор тура мечты</h2>
+                        <p class="text-white-50 mb-0">Ответьте на 4 вопроса, и наш алгоритм порекомендует идеальный отдых специально под ваши желания!</p>
+                    </div>
+
+                    <!-- Survey Questionnaire Card -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" x-show="!result">
+                        <form @submit.prevent="submitSurvey()">
+                            <!-- Question 1: Budget -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark d-block">1. Какой бюджет поездки вы планируете на двоих?</label>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label class="card p-3 border rounded-4 text-center cursor-pointer h-100" 
+                                               :class="form.preferredBudget === 'ECONOMY' ? 'border-primary bg-primary-subtle shadow-sm' : ''" style="cursor: pointer;">
+                                            <input type="radio" class="d-none" name="budget" value="ECONOMY" x-model="form.preferredBudget">
+                                            <span class="fw-bold d-block">Эконом</span>
+                                            <small class="text-muted">до 60 000 ₽</small>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="card p-3 border rounded-4 text-center cursor-pointer h-100" 
+                                               :class="form.preferredBudget === 'MEDIUM' ? 'border-primary bg-primary-subtle shadow-sm' : ''" style="cursor: pointer;">
+                                            <input type="radio" class="d-none" name="budget" value="MEDIUM" x-model="form.preferredBudget">
+                                            <span class="fw-bold d-block">Оптимальный</span>
+                                            <small class="text-muted">60 000 – 120 000 ₽</small>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="card p-3 border rounded-4 text-center cursor-pointer h-100" 
+                                               :class="form.preferredBudget === 'LUXURY' ? 'border-primary bg-primary-subtle shadow-sm' : ''" style="cursor: pointer;">
+                                            <input type="radio" class="d-none" name="budget" value="LUXURY" x-model="form.preferredBudget">
+                                            <span class="fw-bold d-block">Премиум / Люкс</span>
+                                            <small class="text-muted">от 120 000 ₽</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Question 2: Travel Style -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark d-block">2. Какой формат отдыха вы предпочитаете?</label>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="card p-3 border rounded-4 cursor-pointer d-flex flex-row align-items-center gap-3"
+                                               :class="form.travelType === 'BEACH' ? 'border-primary bg-primary-subtle shadow-sm' : ''" style="cursor: pointer;">
+                                            <input type="radio" class="d-none" name="travelType" value="BEACH" x-model="form.travelType">
+                                            <i class="bi bi-umbrella fs-3 text-warning"></i>
+                                            <div>
+                                                <strong class="d-block">Пляжный релакс</strong>
+                                                <small class="text-muted">Море, песчаный пляж, солнце</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="card p-3 border rounded-4 cursor-pointer d-flex flex-row align-items-center gap-3"
+                                               :class="form.travelType === 'SIGHTSEEING' ? 'border-primary bg-primary-subtle shadow-sm' : ''" style="cursor: pointer;">
+                                            <input type="radio" class="d-none" name="travelType" value="SIGHTSEEING" x-model="form.travelType">
+                                            <i class="bi bi-camera fs-3 text-info"></i>
+                                            <div>
+                                                <strong class="d-block">Экскурсии и культура</strong>
+                                                <small class="text-muted">Дворцы, музеи, колоритные улочки</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="card p-3 border rounded-4 cursor-pointer d-flex flex-row align-items-center gap-3"
+                                               :class="form.travelType === 'MOUNTAIN' ? 'border-primary bg-primary-subtle shadow-sm' : ''" style="cursor: pointer;">
+                                            <input type="radio" class="d-none" name="travelType" value="MOUNTAIN" x-model="form.travelType">
+                                            <i class="bi bi-image-alt fs-3 text-success"></i>
+                                            <div>
+                                                <strong class="d-block">Горы и природа</strong>
+                                                <small class="text-muted">Альпийские озера, свежий воздух</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="card p-3 border rounded-4 cursor-pointer d-flex flex-row align-items-center gap-3"
+                                               :class="form.travelType === 'ACTIVE' ? 'border-primary bg-primary-subtle shadow-sm' : ''" style="cursor: pointer;">
+                                            <input type="radio" class="d-none" name="travelType" value="ACTIVE" x-model="form.travelType">
+                                            <i class="bi bi-compass fs-3 text-danger"></i>
+                                            <div>
+                                                <strong class="d-block">Активный отдых</strong>
+                                                <small class="text-muted">Дайвинг, серфинг, трекинг</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Question 3: Season -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark d-block">3. В какой сезон хотите отправиться?</label>
+                                <select class="form-select form-select-lg" x-model="form.preferredSeason">
+                                    <option value="SUMMER">Лето (Июнь - Август)</option>
+                                    <option value="AUTUMN">Осень (Сентябрь - Ноябрь)</option>
+                                    <option value="SPRING">Весна (Март - Май)</option>
+                                    <option value="WINTER">Зима (Декабрь - Февраль)</option>
+                                </select>
+                            </div>
+
+                            <!-- Question 4: Climate -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark d-block">4. Какой климат вам ближе?</label>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label class="card p-3 border rounded-4 text-center cursor-pointer h-100"
+                                               :class="form.climatePreference === 'WARM' ? 'border-primary bg-primary-subtle shadow-sm' : ''" style="cursor: pointer;">
+                                            <input type="radio" class="d-none" name="climate" value="WARM" x-model="form.climatePreference">
+                                            <i class="bi bi-brightness-high text-warning fs-3 mb-1"></i>
+                                            <span class="fw-bold d-block">Тропики и жара</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="card p-3 border rounded-4 text-center cursor-pointer h-100"
+                                               :class="form.climatePreference === 'MODERATE' ? 'border-primary bg-primary-subtle shadow-sm' : ''" style="cursor: pointer;">
+                                            <input type="radio" class="d-none" name="climate" value="MODERATE" x-model="form.climatePreference">
+                                            <i class="bi bi-cloud-sun text-info fs-3 mb-1"></i>
+                                            <span class="fw-bold d-block">Мягкий умеренный</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="card p-3 border rounded-4 text-center cursor-pointer h-100"
+                                               :class="form.climatePreference === 'COLD' ? 'border-primary bg-primary-subtle shadow-sm' : ''" style="cursor: pointer;">
+                                            <input type="radio" class="d-none" name="climate" value="COLD" x-model="form.climatePreference">
+                                            <i class="bi bi-snow text-primary fs-3 mb-1"></i>
+                                            <span class="fw-bold d-block">Горная прохлада</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow py-3" :disabled="isSubmitting">
+                                <span x-show="!isSubmitting"><i class="bi bi-magic me-2"></i>Подобрать идеальный тур</span>
+                                <span x-show="isSubmitting"><span class="spinner-border spinner-border-sm me-2"></span>Анализ предпочтений...</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Result Card -->
+                    <div class="card border-0 shadow-lg rounded-4 p-5 text-center" x-show="result" x-cloak>
+                        <div class="bg-success-subtle text-success p-3 rounded-circle d-inline-flex mx-auto mb-3">
+                            <i class="bi bi-check2-circle display-4"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-2">Мы нашли ваш идеальный тур!</h3>
+                        <p class="text-muted lead fs-6 mb-4" x-text="result ? result.recommendationReason : ''"></p>
+
+                        <template x-if="result && result.recommendedTour">
+                            <div class="card border rounded-4 overflow-hidden shadow-sm mb-4 text-start">
+                                <img :src="result.recommendedTour.imageUrl || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800'" 
+                                     class="w-100 object-fit-cover" style="height: 280px;" alt="Tour Image">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold" 
+                                              x-text="result.recommendedTour.country + ', ' + result.recommendedTour.city"></span>
+                                        <span class="text-primary fw-bold" x-text="result.recommendedTour.durationDays + ' дней'"></span>
+                                    </div>
+                                    <h4 class="fw-bold mb-2" x-text="result.recommendedTour.title"></h4>
+                                    <p class="text-muted small mb-3" x-text="result.recommendedTour.description"></p>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                        <div>
+                                            <span class="text-muted small d-block">Стоимость за тур</span>
+                                            <h3 class="fw-extrabold text-primary mb-0" x-text="formatMoney(result.recommendedTour.price) + ' ₽'"></h3>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <a :href="'/booking?tourId=' + result.recommendedTour.id" class="btn btn-warning btn-lg fw-bold rounded-pill px-4 shadow-sm">
+                                                Забронировать тур
+                                            </a>
+                                            <button class="btn btn-outline-secondary rounded-pill" @click="result = null">
+                                                Пройти заново
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script>
+        function surveyApp() {
+            return {
+                isSubmitting: false,
+                form: {
+                    preferredBudget: 'MEDIUM',
+                    travelType: 'BEACH',
+                    preferredSeason: 'SUMMER',
+                    climatePreference: 'WARM'
+                },
+                result: null,
+                formatMoney(amount) {
+                    return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                },
+                async submitSurvey() {
+                    this.isSubmitting = true;
+                    try {
+                        const res = await fetch('/api/v1/surveys', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.form)
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            this.result = data;
+                        } else {
+                            alert(data.detail || 'Ошибка сохранения ответов опроса');
+                        }
+                    } catch (e) {
+                        alert('Ошибка сети при отправке опроса');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

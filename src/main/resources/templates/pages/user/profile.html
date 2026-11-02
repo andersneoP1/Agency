@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Личный кабинет'})}">
+    <title>Личный кабинет | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" x-data="profileApp()">
+
+    <!-- Header Navigation -->
+    <header th:replace="~{fragments/navbar :: navbar('profile')}"></header>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 py-4">
+        <div class="container">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Главная</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Личный кабинет</li>
+                </ol>
+            </nav>
+
+            <!-- User Header Profile Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Avatar with upload trigger -->
+                        <div class="position-relative">
+                            <img th:src="${user.avatarUrl() ?: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}" 
+                                 id="userAvatarImg"
+                                 class="rounded-circle object-fit-cover border border-3 border-warning shadow-sm" 
+                                 style="width: 80px; height: 80px;" alt="Avatar">
+                            <label for="avatarInput" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-1 shadow-sm cursor-pointer" title="Изменить фото" style="cursor: pointer;">
+                                <i class="bi bi-camera-fill small px-1"></i>
+                            </label>
+                            <input type="file" id="avatarInput" class="d-none" accept="image/*" @change="uploadAvatar($event)">
+                        </div>
+
+                        <!-- User Info -->
+                        <div>
+                            <h3 class="fw-bold text-dark mb-1" th:text="${user.firstName() + ' ' + user.lastName()}">Иван Петров</h3>
+                            <div class="text-muted small mb-1">
+                                <i class="bi bi-envelope me-1"></i><span th:text="${user.email()}">ivan@example.com</span>
+                                <span class="mx-2">•</span>
+                                <i class="bi bi-telephone me-1"></i><span th:text="${user.phone() ?: 'Телефон не указан'}">+7 999 111-22-33</span>
+                            </div>
+                            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold">
+                                <i class="bi bi-gift-fill me-1"></i>Реф. код: <span th:text="${user.referralCode()}">NT-IVAN123</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/survey}" class="btn btn-outline-warning text-dark fw-bold rounded-pill">
+                            <i class="bi bi-stars me-1"></i>Пройти опрос предпочтений
+                        </a>
+                        <button class="btn btn-outline-danger rounded-pill" onclick="logoutUser()">
+                            <i class="bi bi-box-arrow-right me-1"></i>Выйти
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tabs -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+                <div class="card-header bg-white border-bottom p-0">
+                    <ul class="nav nav-tabs nav-fill border-0" id="profileTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active py-3 fw-bold" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">
+                                <i class="bi bi-briefcase me-1"></i>Мои поездки (<span th:text="${#lists.size(bookings)}">0</span>)
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-3 fw-bold" id="viewed-tab" data-bs-toggle="tab" data-bs-target="#viewed" type="button" role="tab">
+                                <i class="bi bi-eye me-1"></i>Просмотренные (<span th:text="${#lists.size(viewedTours)}">0</span>)
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-3 fw-bold" id="referral-tab" data-bs-toggle="tab" data-bs-target="#referral" type="button" role="tab">
+                                <i class="bi bi-people me-1"></i>Реферальная система
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-3 fw-bold" id="recommendation-tab" data-bs-toggle="tab" data-bs-target="#recommendation" type="button" role="tab">
+                                <i class="bi bi-magic me-1"></i>Рекомендация тура
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-3 fw-bold" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                                <i class="bi bi-gear me-1"></i>Настройки
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="tab-content" id="profileTabsContent">
+
+                        <!-- Tab 1: Orders -->
+                        <div class="tab-pane fade show active" id="orders" role="tabpanel">
+                            <div th:if="${#lists.isEmpty(bookings)}" class="text-center py-5">
+                                <i class="bi bi-calendar-x display-3 text-muted mb-3"></i>
+                                <h4 class="fw-bold">У вас пока нет оформленных поездок</h4>
+                                <p class="text-muted">Выберите потрясающее путешествие в нашем каталоге туров или найдите выгодный авиабилет.</p>
+                                <a th:href="@{/tours}" class="btn btn-warning fw-bold rounded-pill px-4">Смотреть туры</a>
+                            </div>
+
+                            <div th:unless="${#lists.isEmpty(bookings)}" class="d-flex flex-column gap-3">
+                                <div class="card border rounded-4 p-4 shadow-sm" th:each="b : ${bookings}">
+                                    <div class="row align-items-center g-3">
+                                        <div class="col-md-3">
+                                            <span class="text-muted small d-block">Номер брони</span>
+                                            <strong class="fs-5 text-dark" th:text="${b.bookingNumber()}">NT-2026-10293</strong>
+                                            <small class="text-secondary d-block" th:text="${#temporals.format(b.createdAt(), 'dd.MM.yyyy HH:mm')}">Дата</small>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div th:if="${b.tour() != null}">
+                                                <h6 class="fw-bold mb-1" th:text="${b.tour().title()}">Тур</h6>
+                                                <small class="text-muted" th:text="${b.tour().country() + ', ' + b.tour().city()}">Курорт</small>
+                                            </div>
+                                            <div th:if="${b.flight() != null}">
+                                                <h6 class="fw-bold mb-1" th:text="${b.flight().airline() + ' ' + b.flight().flightNumber()}">Рейс</h6>
+                                                <small class="text-muted" th:text="${b.flight().departureCity() + ' → ' + b.flight().arrivalCity()}">Маршрут</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2 text-md-center">
+                                            <span class="badge px-3 py-2 rounded-pill"
+                                                  th:classappend="${b.status().name() == 'PAID' ? 'bg-success' : (b.status().name() == 'PENDING' ? 'bg-warning text-dark' : 'bg-danger')}"
+                                                  th:text="${b.status().name() == 'PAID' ? 'ОПЛАЧЕНО' : (b.status().name() == 'PENDING' ? 'ОЖИДАЕТ ОПЛАТЫ' : 'ОТМЕНЕНО')}">
+                                                ОПЛАЧЕНО
+                                            </span>
+                                            <h5 class="fw-bold text-primary mt-2 mb-0" 
+                                                th:text="${#numbers.formatDecimal(b.totalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">80 910 ₽</h5>
+                                        </div>
+
+                                        <div class="col-md-3 text-md-end d-flex flex-column gap-2">
+                                            <div th:if="${b.status().name() == 'PAID'}">
+                                                <a th:href="@{'/api/v1/bookings/' + ${b.id()} + '/voucher'}" class="btn btn-primary btn-sm rounded-pill fw-bold w-100">
+                                                    <i class="bi bi-file-earmark-pdf me-1"></i>Скачать ваучер
+                                                </a>
+                                                <a th:href="@{'/payment/success?bookingId=' + ${b.id()}}" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold w-100 mt-1">
+                                                    <i class="bi bi-qr-code me-1"></i>Показать QR
+                                                </a>
+                                            </div>
+                                            <div th:if="${b.status().name() == 'PENDING'}">
+                                                <a th:href="@{'/payment?bookingId=' + ${b.id()}}" class="btn btn-success btn-sm rounded-pill fw-bold w-100">
+                                                    <i class="bi bi-credit-card me-1"></i>Оплатить
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Viewed Tours -->
+                        <div class="tab-pane fade" id="viewed" role="tabpanel">
+                            <div th:if="${#lists.isEmpty(viewedTours)}" class="text-center py-5">
+                                <i class="bi bi-eye-slash display-3 text-muted mb-3"></i>
+                                <h4 class="fw-bold">История просмотров пуста</h4>
+                                <p class="text-muted">Просматривайте туры в каталоге, и они автоматически появятся здесь.</p>
+                            </div>
+
+                            <div th:unless="${#lists.isEmpty(viewedTours)}" class="row g-4">
+                                <div class="col-md-4" th:each="tour : ${viewedTours}">
+                                    <div class="card h-100 border rounded-4 overflow-hidden shadow-sm">
+                                        <a th:href="@{'/tours/' + ${tour.id()}}">
+                                            <img th:src="${tour.imageUrl() ?: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400'}" 
+                                                 class="w-100 object-fit-cover" style="height: 160px;" th:alt="${tour.title()}">
+                                        </a>
+                                        <div class="card-body p-3">
+                                            <h6 class="fw-bold mb-1">
+                                                <a th:href="@{'/tours/' + ${tour.id()}}" class="text-dark text-decoration-none" th:text="${tour.title()}">Тур</a>
+                                            </h6>
+                                            <small class="text-muted d-block mb-2" th:text="${tour.country() + ', ' + tour.city()}">Курорт</small>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <strong class="text-primary" th:text="${#numbers.formatDecimal(tour.price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</strong>
+                                                <a th:href="@{'/tours/' + ${tour.id()}}" class="btn btn-warning btn-sm rounded-pill fw-bold">Подробнее</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 3: Referral System -->
+                        <div class="tab-pane fade" id="referral" role="tabpanel">
+                            <div class="row g-4">
+                                <div class="col-lg-6">
+                                    <h4 class="fw-bold mb-3"><i class="bi bi-gift text-primary me-2"></i>Приглашайте друзей — получайте скидки!</h4>
+                                    <p class="text-muted">Отправьте персональную ссылку вашим друзьям. Когда друг зарегистрируется и оплатит свой первый тур, вы получите персональный промокод на <strong>10% скидку</strong> на любое следующее путешествие!</p>
+                                    
+                                    <div class="p-3 bg-light rounded-4 mb-3">
+                                        <label class="form-label small fw-bold text-muted">Ваша реферальная ссылка</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control font-monospace" th:value="${referral.referralLink()}" id="refLinkInput" readonly>
+                                            <button class="btn btn-primary fw-bold px-3" type="button" @click="copyRefLink()">
+                                                <i class="bi bi-clipboard me-1"></i>Копировать
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 text-center">
+                                        <div class="col-6">
+                                            <div class="card border rounded-4 p-3 bg-light">
+                                                <span class="text-muted small">Приглашено друзей</span>
+                                                <h3 class="fw-bold text-primary mb-0" th:text="${referral.totalInvited()}">0</h3>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="card border rounded-4 p-3 bg-light">
+                                                <span class="text-muted small">Начислено бонусов</span>
+                                                <h3 class="fw-bold text-success mb-0" th:text="${referral.earnedRewardsCount()}">0</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <h5 class="fw-bold mb-3">Приглашённые друзья</h5>
+                                    <div th:if="${#lists.isEmpty(referral.invitedFriends())}" class="p-4 bg-light rounded-4 text-center text-muted">
+                                        <i class="bi bi-people display-4 d-block mb-2 opacity-50"></i>
+                                        Вы пока не пригласили друзей. Поделитесь ссылкой!
+                                    </div>
+                                    <ul th:unless="${#lists.isEmpty(referral.invitedFriends())}" class="list-group list-group-flush rounded-4">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center" th:each="friend : ${referral.invitedFriends()}">
+                                            <span><i class="bi bi-person-check-fill text-success me-2"></i><span th:text="${friend}">Друг</span></span>
+                                            <span class="badge bg-success-subtle text-success rounded-pill">Зарегистрирован</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 4: Recommendation -->
+                        <div class="tab-pane fade" id="recommendation" role="tabpanel">
+                            <div th:if="${survey.recommendedTour() == null}" class="text-center py-5">
+                                <i class="bi bi-magic display-3 text-warning mb-3"></i>
+                                <h4 class="fw-bold">Пройдите опрос, чтобы получить рекомендацию</h4>
+                                <p class="text-muted">Ответьте на 4 простых вопроса, и наша система подберет идеальное направление специально для вас!</p>
+                                <a th:href="@{/survey}" class="btn btn-warning fw-bold rounded-pill px-4">Пройти опрос путешествий</a>
+                            </div>
+
+                            <div th:unless="${survey.recommendedTour() == null}" class="card border rounded-4 p-4 shadow-sm">
+                                <div class="row align-items-center g-4">
+                                    <div class="col-md-5">
+                                        <img th:src="${survey.recommendedTour().imageUrl() ?: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500'}" 
+                                             class="rounded-4 object-fit-cover w-100 shadow" style="height: 240px;" th:alt="${survey.recommendedTour().title()}">
+                                    </div>
+                                    <div class="col-md-7">
+                                        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">
+                                            <i class="bi bi-star-fill me-1"></i>Персональный выбор для вас
+                                        </span>
+                                        <h3 class="fw-bold mb-2">
+                                            <a th:href="@{'/tours/' + ${survey.recommendedTour().id()}}" class="text-dark text-decoration-none" 
+                                               th:text="${survey.recommendedTour().title()}">Тур</a>
+                                        </h3>
+                                        <p class="text-muted small mb-3" th:text="${survey.recommendationReason()}">Обоснование</p>
+                                        <div class="d-flex align-items-baseline gap-3 mb-4">
+                                            <h3 class="fw-extrabold text-primary mb-0" 
+                                                th:text="${#numbers.formatDecimal(survey.recommendedTour().price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</h3>
+                                            <span class="text-muted small">/ за тур</span>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <a th:href="@{'/booking?tourId=' + ${survey.recommendedTour().id()}}" class="btn btn-warning fw-bold rounded-pill px-4">
+                                                Забронировать
+                                            </a>
+                                            <a th:href="@{/survey}" class="btn btn-outline-secondary rounded-pill fw-semibold">
+                                                Пройти заново
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 5: Settings Form -->
+                        <div class="tab-pane fade" id="settings" role="tabpanel">
+                            <div class="row justify-content-center">
+                                <div class="col-md-8">
+                                    <h5 class="fw-bold mb-3">Редактирование профиля</h5>
+                                    <form @submit.prevent="updateProfile()">
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Имя</label>
+                                                <input type="text" class="form-control" x-model="form.firstName" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Фамилия</label>
+                                                <input type="text" class="form-control" x-model="form.lastName" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Email (логин)</label>
+                                                <input type="email" class="form-control bg-light" th:value="${user.email()}" readonly disabled>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Телефон</label>
+                                                <input type="tel" class="form-control" x-model="form.phone">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4" :disabled="isSaving">
+                                            <span x-show="!isSaving">Сохранить изменения</span>
+                                            <span x-show="isSaving">Сохранение...</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script>
+        function profileApp() {
+            return {
+                isSaving: false,
+                form: {
+                    firstName: '[[${user.firstName()}]]',
+                    lastName: '[[${user.lastName()}]]',
+                    phone: '[[${user.phone() ?: ''}]]'
+                },
+                copyRefLink() {
+                    const input = document.getElementById('refLinkInput');
+                    input.select();
+                    navigator.clipboard.writeText(input.value);
+                    alert('Реферальная ссылка скопирована в буфер обмена!');
+                },
+                async uploadAvatar(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    try {
+                        const res = await fetch('/api/v1/profile/avatar', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            document.getElementById('userAvatarImg').src = data.message;
+                            alert('Аватар успешно обновлен!');
+                        } else {
+                            alert(data.detail || 'Не удалось загрузить аватар');
+                        }
+                    } catch (e) {
+                        alert('Ошибка загрузки файла');
+                    }
+                },
+                async updateProfile() {
+                    this.isSaving = true;
+                    try {
+                        const res = await fetch('/api/v1/profile', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.form)
+                        });
+                        if (res.ok) {
+                            alert('Данные профиля успешно обновлены!');
+                            window.location.reload();
+                        } else {
+                            const err = await res.json();
+                            alert(err.detail || 'Ошибка обновления данных');
+                        }
+                    } catch (e) {
+                        alert('Ошибка сети при обновлении профиля');
+                    } finally {
+                        this.isSaving = false;
+                    }
+                }
+            }
+        }
+
+        async function logoutUser() {
+            if (!confirm('Вы действительно хотите выйти из аккаунта?')) return;
+            try {
+                await fetch('/api/v1/auth/logout', { method: 'POST' });
+            } finally {
+                window.location.href = '/login';
+            }
+        }
+    </script>
+</body>
+</html>

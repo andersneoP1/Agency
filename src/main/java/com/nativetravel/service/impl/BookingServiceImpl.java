@@ -26,6 +26,7 @@ import com.nativetravel.service.EmailService;
 import com.nativetravel.service.PdfVoucherService;
 import com.nativetravel.service.PromoCodeService;
 import com.nativetravel.service.QrCodeService;
+import com.nativetravel.service.ReferralService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -55,6 +56,7 @@ public class BookingServiceImpl implements BookingService {
     private final QrCodeService qrCodeService;
     private final PdfVoucherService pdfVoucherService;
     private final EmailService emailService;
+    private final ReferralService referralService;
     private final BookingMapper bookingMapper;
 
     private final SecureRandom random = new SecureRandom();
@@ -172,6 +174,9 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getPromoCode() != null) {
             promoCodeService.incrementUses(booking.getPromoCode());
         }
+
+        // Reward referrer if user was invited by friend
+        referralService.checkAndRewardReferrer(user);
 
         // Generate QR code and link to booking
         String qrContent = "https://nativetravel.local/verify-booking?number=" + booking.getBookingNumber()
