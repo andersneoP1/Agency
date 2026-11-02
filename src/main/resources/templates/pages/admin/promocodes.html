@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Промокоды'})}">
+    <title>Промокоды | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" x-data="promoAdminApp()">
+
+    <!-- Admin Navbar -->
+    <div th:replace="~{fragments/admin-navbar :: admin-navbar('promocodes')}"></div>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 pb-5">
+        <div class="container">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1"><i class="bi bi-ticket-perforated text-warning me-2"></i>Управление промокодами</h2>
+                    <p class="text-muted mb-0">Всего купонов: <strong th:text="${promoCodesPage.totalElements}">4</strong></p>
+                </div>
+                <div>
+                    <button class="btn btn-warning fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#promoModal">
+                        <i class="bi bi-plus-circle me-1"></i> Создать промокод
+                    </button>
+                </div>
+            </div>
+
+            <!-- Promocodes Table -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 5%;">ID</th>
+                                <th style="width: 25%;">Промокод</th>
+                                <th style="width: 15%;">Скидка (%)</th>
+                                <th style="width: 15%;">Мин. сумма заказа</th>
+                                <th style="width: 15%;">Использований</th>
+                                <th style="width: 15%;">Статус</th>
+                                <th style="width: 10%;" class="text-end">Переключить</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${promoCodesPage.content}">
+                                <td class="fw-bold text-muted" th:text="${p.id()}">1</td>
+                                <td>
+                                    <span class="badge bg-primary fs-6 font-monospace" th:text="${p.code()}">WELCOME10</span>
+                                </td>
+                                <td>
+                                    <strong class="text-success fs-6" th:text="${p.discountPercent() + '%'}">10%</strong>
+                                </td>
+                                <td>
+                                    <span th:text="${#numbers.formatDecimal(p.minOrderAmount(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">10 000 ₽</span>
+                                </td>
+                                <td>
+                                    <span th:text="${p.currentUses() + ' / ' + p.maxUses()}">0 / 500</span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${p.active() ? 'bg-success' : 'bg-secondary'}"
+                                          th:text="${p.active() ? 'АКТИВЕН' : 'ОТКЛЮЧЕН'}">
+                                        АКТИВЕН
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm" th:classappend="${p.active() ? 'btn-outline-warning' : 'btn-outline-success'}"
+                                            th:onclick="'togglePromo(' + ${p.id()} + ')'"
+                                            th:text="${p.active() ? 'Выключить' : 'Включить'}">
+                                        Переключить
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Create Promo Modal -->
+    <div class="modal fade" id="promoModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Новый промокод</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form @submit.prevent="createPromo()">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Кодовое слово (UPPERCASE)</label>
+                            <input type="text" class="form-control font-monospace text-uppercase" x-model="form.code" required placeholder="SUMMER30">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Скидка (%)</label>
+                                <input type="number" class="form-control" x-model="form.discountPercent" min="1" max="100" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Мин. заказ (₽)</label>
+                                <input type="number" class="form-control" x-model="form.minOrderAmount" min="0" required>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Макс. использований</label>
+                                <input type="number" class="form-control" x-model="form.maxUses" min="1" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Дней действия</label>
+                                <input type="number" class="form-control" x-model="form.validDays" min="1" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top">
+                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-warning fw-bold rounded-pill px-4">Создать промокод</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script>
+        function promoAdminApp() {
+            return {
+                form: {
+                    code: '',
+                    discountPercent: 15,
+                    minOrderAmount: 20000,
+                    maxUses: 100,
+                    validDays: 60
+                },
+                async createPromo() {
+                    try {
+                        const res = await fetch('/api/v1/admin/promocodes', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.form)
+                        });
+                        if (res.ok) {
+                            alert('Промокод успешно создан!');
+                            window.location.reload();
+                        } else {
+                            const err = await res.json();
+                            alert(err.detail || 'Ошибка создания промокода');
+                        }
+                    } catch (e) {
+                        alert('Сетевая ошибка при создании промокода');
+                    }
+                }
+            }
+        }
+
+        async function togglePromo(id) {
+            try {
+                const res = await fetch('/api/v1/admin/promocodes/' + id + '/toggle', { method: 'POST' });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Ошибка при изменении статуса промокода');
+                }
+            } catch (e) {
+                alert('Сетевая ошибка');
+            }
+        }
+    </script>
+</body>
+</html>

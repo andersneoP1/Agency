@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Отели'})}">
+    <title>Отели | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" x-data="hotelAdminApp()">
+
+    <!-- Admin Navbar -->
+    <div th:replace="~{fragments/admin-navbar :: admin-navbar('hotels')}"></div>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 pb-5">
+        <div class="container">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1"><i class="bi bi-building text-warning me-2"></i>Управление отелями</h2>
+                    <p class="text-muted mb-0">Всего отелей в базе: <strong th:text="${#lists.size(hotels)}">5</strong></p>
+                </div>
+                <div>
+                    <button class="btn btn-warning fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#hotelModal" @click="resetForm()">
+                        <i class="bi bi-plus-circle me-1"></i> Добавить отель
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hotels Table -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 5%;">ID</th>
+                                <th style="width: 30%;">Отель</th>
+                                <th style="width: 15%;">Локация</th>
+                                <th style="width: 10%;">Звезды</th>
+                                <th style="width: 30%;">Удобства</th>
+                                <th style="width: 10%;" class="text-end">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="h : ${hotels}">
+                                <td class="fw-bold text-muted" th:text="${h.id()}">1</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img th:src="${h.imageUrl() ?: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=100'}" 
+                                             class="rounded-3 object-fit-cover shadow-sm" style="width: 48px; height: 48px;" alt="Hotel">
+                                        <div>
+                                            <strong class="d-block" th:text="${h.name()}">Отель</strong>
+                                            <small class="text-muted" th:text="${h.address() ?: '—'}">Адрес</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span th:text="${h.country() + ', ' + h.city()}">Турция, Белек</span>
+                                </td>
+                                <td>
+                                    <span class="text-warning fw-bold" th:text="${h.stars() + ' ★'}">5 ★</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted line-clamp-2" th:text="${h.amenities() ?: '—'}">Пляж, Спа</small>
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-danger" th:onclick="'deleteHotel(' + ${h.id()} + ')'" title="Удалить">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Create Hotel Modal -->
+    <div class="modal fade" id="hotelModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Добавить отель</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form @submit.prevent="saveHotel()">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Название отеля</label>
+                            <input type="text" class="form-control" x-model="form.name" required placeholder="Например: Hilton Resort">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Страна</label>
+                                <input type="text" class="form-control" x-model="form.country" required placeholder="Турция">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Город</label>
+                                <input type="text" class="form-control" x-model="form.city" required placeholder="Кемер">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-8">
+                                <label class="form-label small fw-semibold">Адрес</label>
+                                <input type="text" class="form-control" x-model="form.address" placeholder="Улица, дом">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label small fw-semibold">Звёзд (1-5)</label>
+                                <input type="number" class="form-control" x-model="form.stars" min="1" max="5" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Удобства (через запятую)</label>
+                            <input type="text" class="form-control" x-model="form.amenities" placeholder="Пляж, Бассейн, All Inclusive, Спа, Wi-Fi">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">URL фотографии</label>
+                            <input type="url" class="form-control" x-model="form.imageUrl" placeholder="https://images.unsplash.com/...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Описание отеля</label>
+                            <textarea class="form-control" rows="3" x-model="form.description"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top">
+                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-warning fw-bold rounded-pill px-4">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script>
+        function hotelAdminApp() {
+            return {
+                form: {
+                    name: '',
+                    country: '',
+                    city: '',
+                    address: '',
+                    stars: 5,
+                    amenities: '',
+                    imageUrl: '',
+                    description: ''
+                },
+                resetForm() {
+                    this.form = { name: '', country: '', city: '', address: '', stars: 5, amenities: '', imageUrl: '', description: '' };
+                },
+                async saveHotel() {
+                    try {
+                        const res = await fetch('/api/v1/admin/hotels', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.form)
+                        });
+                        if (res.ok) {
+                            alert('Отель успешно добавлен!');
+                            window.location.reload();
+                        } else {
+                            const err = await res.json();
+                            alert(err.detail || 'Ошибка сохранения отеля');
+                        }
+                    } catch (e) {
+                        alert('Сетевая ошибка при создании отеля');
+                    }
+                }
+            }
+        }
+
+        async function deleteHotel(id) {
+            if (!confirm('Удалить отель #' + id + '?')) return;
+            try {
+                const res = await fetch('/api/v1/admin/hotels/' + id, { method: 'DELETE' });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    const data = await res.json();
+                    alert(data.detail || 'Не удалось удалить отель');
+                }
+            } catch (e) {
+                alert('Ошибка сети при удалении отеля');
+            }
+        }
+    </script>
+</body>
+</html>

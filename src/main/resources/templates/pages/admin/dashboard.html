@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Дашборд администратора'})}">
+    <title>Дашборд | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light">
+
+    <!-- Admin Navbar -->
+    <div th:replace="~{fragments/admin-navbar :: admin-navbar('dashboard')}"></div>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 pb-5">
+        <div class="container">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1"><i class="bi bi-speedometer2 text-warning me-2"></i>Сводная аналитика</h2>
+                    <p class="text-muted mb-0">Ключевые показатели работы турагентства и графики продаж</p>
+                </div>
+                <div>
+                    <a th:href="@{/admin/tours/new}" class="btn btn-warning fw-bold rounded-pill shadow-sm">
+                        <i class="bi bi-plus-circle me-1"></i> Добавить тур
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Metric Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small fw-semibold">Выручка (оплачено)</span>
+                            <div class="bg-success-subtle text-success p-2 rounded-circle">
+                                <i class="bi bi-currency-dollar fs-5"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-extrabold text-success mb-0" 
+                            th:text="${#numbers.formatDecimal(stats.totalRevenue(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">0 ₽</h3>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small fw-semibold">Всего заказов</span>
+                            <div class="bg-primary-subtle text-primary p-2 rounded-circle">
+                                <i class="bi bi-briefcase fs-5"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-extrabold text-dark mb-0" th:text="${stats.totalBookings()}">0</h3>
+                        <small class="text-muted" th:text="'Оплачено: ' + ${stats.paidBookings()}">Оплачено: 0</small>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small fw-semibold">Пользователи</span>
+                            <div class="bg-info-subtle text-info p-2 rounded-circle">
+                                <i class="bi bi-people fs-5"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-extrabold text-dark mb-0" th:text="${stats.totalUsers()}">0</h3>
+                        <small class="text-muted">Зарегистрировано</small>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small fw-semibold">Модерация отзывов</span>
+                            <div class="bg-warning-subtle text-warning p-2 rounded-circle">
+                                <i class="bi bi-chat-left-dots fs-5"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-extrabold text-dark mb-0" th:text="${stats.pendingReviews()}">0</h3>
+                        <small class="text-muted"><a th:href="@{/admin/reviews}" class="text-decoration-none">Перейти к проверке →</a></small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row (Chart.js) -->
+            <div class="row g-4 mb-4">
+                <!-- Monthly Revenue Chart -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Динамика выручки</h5>
+                        <div style="height: 300px;">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Distribution Chart -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-pie-chart text-warning me-2"></i>Статусы бронирований</h5>
+                        <div style="height: 300px;" class="d-flex align-items-center justify-content-center">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const monthlyRevenueMap = /*[[${stats.monthlyRevenue()}]]*/ {};
+        const statusDistribution = /*[[${stats.statusDistribution()}]]*/ {};
+
+        // 1. Revenue Chart
+        const months = Object.keys(monthlyRevenueMap);
+        const revenues = Object.values(monthlyRevenueMap);
+
+        const revCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revCtx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Выручка (₽)',
+                    data: revenues,
+                    backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return value.toLocaleString() + ' ₽'; }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Status Doughnut Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Оплачено (PAID)', 'Ожидает (PENDING)', 'Отменено (CANCELLED)'],
+                datasets: [{
+                    data: [
+                        statusDistribution['PAID'] || 0,
+                        statusDistribution['PENDING'] || 0,
+                        statusDistribution['CANCELLED'] || 0
+                    ],
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+        /*]]>*/
+    </script>
+</body>
+</html>

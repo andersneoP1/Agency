@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Тур'})}">
+    <title>Форма тура | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" 
+      x-data="tourFormApp({
+          id: [[${tour != null ? tour.id() : 'null'}]],
+          title: '[[${tour != null ? tour.title() : ''}]]',
+          description: '[[${tour != null ? tour.description() : ''}]]',
+          country: '[[${tour != null ? tour.country() : ''}]]',
+          city: '[[${tour != null ? tour.city() : ''}]]',
+          hotelId: [[${tour != null && tour.hotel() != null ? tour.hotel().id() : 'null'}]],
+          price: [[${tour != null ? tour.price() : 50000}]],
+          startDate: '[[${tour != null ? tour.startDate() : ''}]]',
+          endDate: '[[${tour != null ? tour.endDate() : ''}]]',
+          durationDays: [[${tour != null ? tour.durationDays() : 7}]],
+          includedServices: '[[${tour != null ? tour.includedServices() : 'Перелет, Трансфер, Все включено, Страховка'}]]',
+          imageUrl: '[[${tour != null ? tour.imageUrl() : ''}]]',
+          hotOffer: [[${tour != null ? tour.hotOffer() : false}]],
+          availableSlots: [[${tour != null ? tour.availableSlots() : 10}]]
+      })">
+
+    <!-- Admin Navbar -->
+    <div th:replace="~{fragments/admin-navbar :: admin-navbar('tours')}"></div>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 pb-5">
+        <div class="container">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/admin}">Админка</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/admin/tours}">Туры</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" th:text="${tour != null ? 'Редактирование' : 'Новый тур'}">Форма</li>
+                </ol>
+            </nav>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-9">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                        <h3 class="fw-bold mb-4" th:text="${tour != null ? 'Редактировать тур #' + tour.id() : 'Создание нового тура'}">Форма тура</h3>
+
+                        <form @submit.prevent="saveTour()">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">Название тура</label>
+                                    <input type="text" class="form-control" x-model="form.title" required placeholder="Например: Роскошный отдых в Белеке">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Страна</label>
+                                    <input type="text" class="form-control" x-model="form.country" required placeholder="Турция">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Город / Курорт</label>
+                                    <input type="text" class="form-control" x-model="form.city" required placeholder="Белек">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Отель</label>
+                                    <select class="form-select" x-model="form.hotelId">
+                                        <option value="">Без отеля</option>
+                                        <option th:each="h : ${hotels}" th:value="${h.id()}" th:text="${h.name() + ' (' + h.stars() + '★)'}">Отель</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Стоимость (₽)</label>
+                                    <input type="number" class="form-control" x-model="form.price" required min="1000">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Дата начала</label>
+                                    <input type="date" class="form-control" x-model="form.startDate" required>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Дата окончания</label>
+                                    <input type="date" class="form-control" x-model="form.endDate" required>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Длительность (дней)</label>
+                                    <input type="number" class="form-control" x-model="form.durationDays" required min="1">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">URL изображения</label>
+                                    <input type="url" class="form-control" x-model="form.imageUrl" placeholder="https://images.unsplash.com/...">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">Что входит в стоимость</label>
+                                    <input type="text" class="form-control" x-model="form.includedServices" placeholder="Прямой перелет, Отель 5*, Ультра все включено, Трансфер">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">Описание программы отдыха</label>
+                                    <textarea class="form-control" rows="4" x-model="form.description" required></textarea>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Количество свободных мест</label>
+                                    <input type="number" class="form-control" x-model="form.availableSlots" min="0" required>
+                                </div>
+
+                                <div class="col-md-6 d-flex align-items-center pt-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="hotCheck" x-model="form.hotOffer">
+                                        <label class="form-check-label fw-bold text-danger" for="hotCheck">
+                                            <i class="bi bi-fire me-1"></i>Горящее предложение (скидка)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="d-flex justify-content-between">
+                                <a th:href="@{/admin/tours}" class="btn btn-outline-secondary rounded-pill px-4">Отмена</a>
+                                <button type="submit" class="btn btn-warning fw-bold rounded-pill px-5 shadow-sm" :disabled="isSaving">
+                                    <span x-show="!isSaving">Сохранить тур</span>
+                                    <span x-show="isSaving">Сохранение...</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script>
+        function tourFormApp(initial) {
+            return {
+                id: initial.id,
+                isSaving: false,
+                form: {
+                    title: initial.title,
+                    description: initial.description,
+                    country: initial.country,
+                    city: initial.city,
+                    hotelId: initial.hotelId,
+                    price: initial.price,
+                    startDate: initial.startDate,
+                    endDate: initial.endDate,
+                    durationDays: initial.durationDays,
+                    includedServices: initial.includedServices,
+                    imageUrl: initial.imageUrl,
+                    hotOffer: initial.hotOffer,
+                    availableSlots: initial.availableSlots
+                },
+                async saveTour() {
+                    this.isSaving = true;
+                    try {
+                        const url = this.id ? '/api/v1/admin/tours/' + this.id : '/api/v1/admin/tours';
+                        const method = this.id ? 'PUT' : 'POST';
+
+                        const res = await fetch(url, {
+                            method: method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.form)
+                        });
+
+                        if (res.ok) {
+                            alert('Тур успешно сохранен!');
+                            window.location.href = '/admin/tours';
+                        } else {
+                            const err = await res.json();
+                            alert(err.detail || 'Ошибка сохранения тура');
+                        }
+                    } catch (e) {
+                        alert('Ошибка сети при сохранении тура');
+                    } finally {
+                        this.isSaving = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

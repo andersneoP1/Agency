@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Все бронирования'})}">
+    <title>Бронирования | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light">
+
+    <!-- Admin Navbar -->
+    <div th:replace="~{fragments/admin-navbar :: admin-navbar('bookings')}"></div>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 pb-5">
+        <div class="container">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1"><i class="bi bi-briefcase text-warning me-2"></i>Клиентские бронирования</h2>
+                    <p class="text-muted mb-0">Всего заказов: <strong th:text="${bookingsPage.totalElements}">0</strong></p>
+                </div>
+            </div>
+
+            <!-- Bookings Table -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 12%;">Номер брони</th>
+                                <th style="width: 25%;">Тур / Рейс</th>
+                                <th style="width: 15%;">Сумма к оплате</th>
+                                <th style="width: 12%;">Оплата</th>
+                                <th style="width: 15%;">Статус</th>
+                                <th style="width: 12%;">Дата</th>
+                                <th style="width: 9%;" class="text-end">Ваучер</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="b : ${bookingsPage.content}">
+                                <td>
+                                    <strong class="d-block" th:text="${b.bookingNumber()}">NT-2026-10293</strong>
+                                    <small class="text-muted">ID: <span th:text="${b.id()}">1</span></small>
+                                </td>
+                                <td>
+                                    <div th:if="${b.tour() != null}">
+                                        <strong th:text="${b.tour().title()}">Тур</strong>
+                                        <small class="text-muted d-block" th:text="${b.tour().country() + ', ' + b.tour().city()}">Курорт</small>
+                                    </div>
+                                    <div th:if="${b.flight() != null}">
+                                        <strong th:text="${b.flight().airline() + ' ' + b.flight().flightNumber()}">Рейс</strong>
+                                        <small class="text-muted d-block" th:text="${b.flight().departureCity() + ' → ' + b.flight().arrivalCity()}">Маршрут</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong class="text-primary fs-6" th:text="${#numbers.formatDecimal(b.totalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">80 910 ₽</strong>
+                                    <small class="text-success d-block" th:if="${b.discountAmount() > 0}" 
+                                           th:text="'Скидка: ' + ${#numbers.formatDecimal(b.discountAmount(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">Скидка</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border" th:text="${b.paymentMethod() ?: '—'}">CARD</span>
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm" th:onchange="'changeStatus(' + ${b.id()} + ', this.value)'">
+                                        <option value="PAID" th:selected="${b.status().name() == 'PAID'}">ОПЛАЧЕНО</option>
+                                        <option value="PENDING" th:selected="${b.status().name() == 'PENDING'}">ОЖИДАЕТ</option>
+                                        <option value="CANCELLED" th:selected="${b.status().name() == 'CANCELLED'}">ОТМЕНЕНО</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <small class="text-muted" th:text="${#temporals.format(b.createdAt(), 'dd.MM.yyyy HH:mm')}">Дата</small>
+                                </td>
+                                <td class="text-end">
+                                    <a th:href="@{'/api/v1/bookings/' + ${b.id()} + '/voucher'}" class="btn btn-sm btn-outline-primary rounded-circle" title="Скачать ваучер">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script>
+        async function changeStatus(bookingId, newStatus) {
+            try {
+                const res = await fetch('/api/v1/admin/bookings/' + bookingId + '/status?status=' + newStatus, {
+                    method: 'POST'
+                });
+                if (res.ok) {
+                    alert('Статус бронирования обновлен!');
+                } else {
+                    alert('Ошибка обновления статуса');
+                }
+            } catch (e) {
+                alert('Сетевая ошибка при изменении статуса');
+            }
+        }
+    </script>
+</body>
+</html>
