@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/head :: head(${pageTitle ?: 'Детали тура'})}">
     <title>Детали тура | Native Travel</title>
 </head>
-<body class="d-flex flex-column h-100 bg-light" x-data="tourDetail([[${tour.id()}]], [[${isFavorite}]])">
+<body class="d-flex flex-column h-100 bg-light" x-data="tourDetail(window.TOUR_DETAIL_CONFIG)">
 
     <!-- Header Navigation -->
     <header th:replace="~{fragments/navbar :: navbar('tours')}"></header>
@@ -165,7 +165,7 @@
                         <!-- CTA Actions -->
                         <div class="d-grid gap-2">
                             <button class="btn btn-warning btn-lg fw-bold rounded-pill shadow-sm"
-                                    @click="addToCart([[${tour.id()}]], 'TOUR')">
+                                    @click="addToCart(tourId, 'TOUR')">
                                 <i class="bi bi-cart-plus me-2"></i>Добавить в корзину
                             </button>
                             <a th:href="@{'/booking?tourId=' + ${tour.id()}}" class="btn btn-primary btn-lg fw-bold rounded-pill shadow-sm">
@@ -204,17 +204,26 @@
     <!-- Chat Widget -->
     <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
 
-    <script>
-        function tourDetail(tourId, initialFav) {
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.TOUR_DETAIL_CONFIG = {
+            tourId: /*[[${tour.id()}]]*/ 0,
+            isFavorite: /*[[${isFavorite}]]*/ false
+        };
+        /*]]>*/
+
+        function tourDetail(config) {
+            config = config || {};
             return {
-                tourId: tourId,
-                isFav: initialFav,
+                tourId: config.tourId,
+                isFav: !!config.isFavorite,
                 async addToCart(id, type) {
+                    const tid = id || this.tourId;
                     try {
                         const res = await fetch('/api/v1/cart/items', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ tourId: id, quantity: 1, itemType: type })
+                            body: JSON.stringify({ tourId: tid, quantity: 1 })
                         });
                         if (res.status === 401) {
                             window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
@@ -229,6 +238,7 @@
                         }
                     } catch (e) {
                         console.error(e);
+                        alert('Ошибка добавления в корзину');
                     }
                 },
                 async toggleFavorite() {
@@ -245,18 +255,6 @@
                     } catch (e) {
                         console.error(e);
                     }
-                },
-                addToCompare(id) {
-                    let list = JSON.parse(localStorage.getItem('nt_compare_tours') || '[]');
-                    if (!list.includes(id)) {
-                        if (list.length >= 4) {
-                            alert('Можно выбрать не более 4 туров для сравнения');
-                            return;
-                        }
-                        list.push(id);
-                        localStorage.setItem('nt_compare_tours', JSON.stringify(list));
-                    }
-                    window.location.href = '/compare?ids=' + list.join(',');
                 }
             }
         }

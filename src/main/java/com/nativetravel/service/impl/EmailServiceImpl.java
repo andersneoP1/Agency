@@ -78,4 +78,27 @@ public class EmailServiceImpl implements EmailService {
             log.error("Failed to send booking confirmation email to {}: {}", toEmail, e.getMessage());
         }
     }
+
+    /**
+     * Отправляет рассылку горящих предложений.
+     *
+     * @param toEmail адрес подписчика
+     * @param content текст рассылки
+     */
+    @Override
+    public void sendHotOffersNewsletter(String toEmail, String content) {
+        log.info("Sending hot offers newsletter to email: {}", toEmail);
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(toEmail);
+            message.setSubject("🔥 Горящие туры недели от Native Travel!");
+            message.setText("Здравствуйте!\n\n"
+                    + "Специально для вас мы собрали подборку самых выгодных горящих предложений:\n\n"
+                    + content + "\n\n"
+                    + "Забронируйте отдых мечты прямо сейчас на сайте Native Travel!");
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send hot offers newsletter to {}: {}", toEmail, e.getMessage());
+        }
+    }
 }

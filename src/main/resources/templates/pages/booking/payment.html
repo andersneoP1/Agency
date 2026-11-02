@@ -3,13 +3,7 @@
 <head th:replace="~{fragments/head :: head(${pageTitle ?: 'Оплата заказа'})}">
     <title>Оплата заказа | Native Travel</title>
 </head>
-<body class="d-flex flex-column h-100 bg-light" 
-      x-data="paymentApp({
-          bookingId: [[${booking.id()}]],
-          bookingNumber: '[[${booking.bookingNumber()}]]',
-          totalPrice: [[${booking.totalPrice()}]],
-          initialMethod: '[[${booking.paymentMethod() ?: 'CARD'}]]'
-      })">
+<body class="d-flex flex-column h-100 bg-light" x-data="paymentApp(window.PAYMENT_CONFIG)">
 
     <!-- Header Navigation -->
     <header th:replace="~{fragments/navbar :: navbar('booking')}"></header>
@@ -213,8 +207,18 @@
     <!-- Chat Widget -->
     <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
 
-    <script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.PAYMENT_CONFIG = {
+            bookingId: /*[[${booking.id()}]]*/ 0,
+            bookingNumber: /*[[${booking.bookingNumber()}]]*/ '',
+            totalPrice: /*[[${booking.totalPrice()}]]*/ 0,
+            initialMethod: /*[[${booking.paymentMethod() != null ? booking.paymentMethod().name() : 'CARD'}]]*/ 'CARD'
+        };
+        /*]]>*/
+
         function paymentApp(config) {
+            config = config || {};
             return {
                 bookingId: config.bookingId,
                 bookingNumber: config.bookingNumber,

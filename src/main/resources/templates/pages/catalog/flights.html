@@ -135,7 +135,8 @@
                                 th:text="${#numbers.formatDecimal(flight.price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">18 500 ₽</h3>
                             <div class="d-flex gap-2 justify-content-md-end">
                                 <button class="btn btn-outline-warning fw-bold rounded-pill"
-                                        @click="addFlightToCart([[${flight.id()}]])">
+                                        th:data-flight-id="${flight.id()}"
+                                        @click="addFlightToCart(Number($el.dataset.flightId))">
                                     <i class="bi bi-cart-plus me-1"></i>В корзину
                                 </button>
                                 <a th:href="@{'/booking?flightId=' + ${flight.id()}}" class="btn btn-warning fw-bold rounded-pill shadow-sm">
@@ -187,7 +188,7 @@
                         const res = await fetch('/api/v1/cart/items', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ flightId: flightId, quantity: 1, itemType: 'FLIGHT' })
+                            body: JSON.stringify({ flightId: flightId, quantity: 1 })
                         });
                         if (res.status === 401) {
                             window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);

@@ -26,6 +26,13 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
     Page<Tour> findByHotOfferTrue(Pageable pageable);
 
     /**
+     * Поиск всех горящих туров без пагинации (для Telegram-бота и рассылок).
+     *
+     * @return список горящих предложений
+     */
+    List<Tour> findByHotOfferTrue();
+
+    /**
      * Получение списка всех уникальных стран из базы.
      *
      * @return список названий стран
