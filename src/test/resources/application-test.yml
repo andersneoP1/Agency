@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/nativetravel_test
+    username: nativetravel_user
+    password: nativetravel_secret_pass
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: none

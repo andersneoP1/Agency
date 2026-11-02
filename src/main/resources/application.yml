@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: native-travel
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  health:
+    mail:
+      enabled: false
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+    display-request-duration: true
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+  jwt:
+    secret: ${JWT_SECRET:c3VwZXJTZWNyZXRUb2tlbktleUZvck5hdGl2ZVRyYXZlbEFwcGxpY2F0aW9uMjAyNlNlY3VyZUtleUZvcldlYg==}
+    expiration-ms: ${JWT_EXPIRATION_MS:900000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+  upload:
+    dir: ${UPLOAD_DIR:uploads}
+  telegram:
+    bot-username: ${TELEGRAM_BOT_USERNAME:NativeTravelSupportBot}
+    bot-token: ${TELEGRAM_BOT_TOKEN:mock-token}
