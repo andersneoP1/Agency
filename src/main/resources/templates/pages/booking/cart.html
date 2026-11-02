@@ -52,7 +52,7 @@
                 <!-- Items Column -->
                 <div class="col-lg-8">
                     <div class="d-flex flex-column gap-3">
-                        <div class="card border-0 shadow-sm rounded-4 p-4" th:each="item : ${cart.items()}">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 hover-elevate" th:each="item : ${cart.items()}" data-aos="fade-up">
                             <div class="row align-items-center g-3">
                                 <!-- Image or Icon -->
                                 <div class="col-md-2 text-center">
@@ -144,21 +144,21 @@
                             <!-- If single tour in cart -->
                             <div th:if="${#lists.size(cart.items()) == 1 && cart.items()[0].tour() != null}">
                                 <a th:href="@{'/booking?tourId=' + ${cart.items()[0].tour().id()}}" 
-                                   class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm">
+                                   class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm btn-shimmer">
                                     <i class="bi bi-arrow-right-circle me-2"></i>Перейти к оформлению
                                 </a>
                             </div>
                             <!-- If single flight in cart -->
                             <div th:if="${#lists.size(cart.items()) == 1 && cart.items()[0].flight() != null}">
                                 <a th:href="@{'/booking?flightId=' + ${cart.items()[0].flight().id()}}" 
-                                   class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm">
+                                   class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm btn-shimmer">
                                     <i class="bi bi-arrow-right-circle me-2"></i>Перейти к оформлению
                                 </a>
                             </div>
                             <!-- If multiple items in cart -->
                             <div th:if="${#lists.size(cart.items()) > 1}">
                                 <a th:href="@{'/booking?tourId=' + ${cart.items()[0].tour() != null ? cart.items()[0].tour().id() : ''}}" 
-                                   class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm">
+                                   class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm btn-shimmer">
                                     <i class="bi bi-arrow-right-circle me-2"></i>Оформить бронирование
                                 </a>
                             </div>

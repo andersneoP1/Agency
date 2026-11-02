@@ -132,12 +132,12 @@
 
                     <!-- Cards -->
                     <div th:unless="${toursPage.empty}" class="row g-4">
-                        <div class="col-md-6" th:each="tour : ${toursPage.content}">
+                        <div class="col-md-6" th:each="tour : ${toursPage.content}" data-aos="fade-up">
                             <div
-                                class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden tour-card position-relative">
+                                class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden tour-card position-relative hover-elevate">
                                 <!-- Hot Offer Badge -->
                                 <span th:if="${tour.hotOffer()}"
-                                    class="position-absolute top-0 start-0 m-3 badge bg-danger text-white rounded-pill px-3 py-2 fw-bold shadow-sm"
+                                    class="position-absolute top-0 start-0 m-3 badge bg-danger text-white rounded-pill px-3 py-2 fw-bold shadow-sm pulse-hot-badge"
                                     style="z-index: 2;">
                                     <i class="bi bi-fire me-1"></i> Горящий тур
                                 </span>
@@ -221,7 +221,7 @@
                                             </div>
                                             <!-- Detail Button -->
                                             <a th:href="@{'/tours/' + ${tour.id()}}"
-                                                class="btn btn-warning fw-bold btn-sm px-3 rounded-pill shadow-sm">
+                                                class="btn btn-warning fw-bold btn-sm px-3 rounded-pill shadow-sm btn-shimmer">
                                                 Детали
                                             </a>
                                         </div>
@@ -280,17 +280,11 @@
                             return;
                         }
                         if (res.ok) {
-                            btn.classList.add('btn-danger', 'text-white');
+                            btn.classList.add('btn-danger', 'text-white', 'animate-heart-pop');
                             btn.classList.remove('btn-light');
-                            alert('Тур добавлен в избранное!');
+                            setTimeout(() => btn.classList.remove('animate-heart-pop'), 500);
                         }
                     } catch (e) {
-                        console.error(e);
-                    }
-                }
-            }
-        }
-    </script>
                         console.error(e);
                     }
                 }

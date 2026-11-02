@@ -12,15 +12,6 @@ body {
     border-bottom: 3px solid #ffc107;
 }
 
-.hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
-}
-
 .text-hover-warning:hover {
     color: #ffc107 !important;
 }
@@ -36,4 +27,143 @@ body {
 .navbar-nav .nav-link.active {
     color: #ffc107 !important;
     border-bottom: 2px solid #ffc107;
+}
+
+/* ========================================================
+   ANIMATIONS & TRANSITIONS (Micro-interactions)
+   ======================================================== */
+
+/* Smooth Card Hover Elevation */
+.tour-card, .hover-lift, .hover-elevate {
+    transition: transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.35s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+}
+
+.tour-card:hover, .hover-elevate:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12) !important;
+}
+
+/* Image Zoom on Card Hover */
+.tour-card .transition-transform,
+.card-img-zoom {
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.tour-card:hover .transition-transform,
+.tour-card:hover .card-img-zoom {
+    transform: scale(1.08);
+}
+
+/* Hot Offer Fire Pulse */
+@keyframes pulse-hot {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.6);
+    }
+    50% {
+        transform: scale(1.06);
+        box-shadow: 0 0 14px 4px rgba(220, 53, 69, 0.35);
+    }
+}
+
+.pulse-hot-badge {
+    animation: pulse-hot 2s infinite ease-in-out;
+}
+
+/* Button Click Compression & Hover */
+.btn {
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease !important;
+}
+
+.btn:active {
+    transform: scale(0.96) !important;
+}
+
+/* Golden CTA Shimmer Effect */
+.btn-shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-shimmer::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 25%;
+    height: 200%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.4) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(30deg);
+    animation: shimmer 3.5s infinite ease-in-out;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -60%;
+    }
+    25% {
+        left: 140%;
+    }
+    100% {
+        left: 140%;
+    }
+}
+
+/* Heart Favorite Button Pop Animation */
+@keyframes heart-pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.35); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+.animate-heart-pop {
+    animation: heart-pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Floating Compare Bar Slide-Up Animation */
+#globalCompareBar {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+}
+
+/* Success Checkmark Bounce */
+@keyframes success-pop {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-success-pop {
+    animation: success-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Counter number shine */
+.stat-counter {
+    transition: color 0.3s ease;
+}
+
+/* Skeleton Loading Shimmer for HTMX */
+@keyframes skeleton-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: 6px;
 }

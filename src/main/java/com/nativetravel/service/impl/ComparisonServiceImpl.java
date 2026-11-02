@@ -34,7 +34,8 @@ public class ComparisonServiceImpl implements ComparisonService {
         }
 
         if (tourIds.size() > MAX_COMPARE_LIMIT) {
-            throw new BadRequestException("Для сравнения можно выбрать не более " + MAX_COMPARE_LIMIT + " туров одновременно");
+            throw new BadRequestException(
+                    "Для сравнения можно выбрать не более " + MAX_COMPARE_LIMIT + " туров одновременно");
         }
 
         return tourRepository.findAllById(tourIds).stream()
@@ -42,4 +43,3 @@ public class ComparisonServiceImpl implements ComparisonService {
                 .toList();
     }
 }
-

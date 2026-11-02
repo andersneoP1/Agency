@@ -41,9 +41,9 @@
 
             <!-- Success Content Card -->
             <div class="row justify-content-center">
-                <div class="col-lg-8">
+                <div class="col-lg-8" data-aos="zoom-in" data-aos-duration="600">
                     <div class="card border-0 shadow-sm rounded-4 p-5 text-center mb-4">
-                        <div class="bg-success-subtle text-success p-3 rounded-circle d-inline-flex mx-auto mb-3">
+                        <div class="bg-success-subtle text-success p-3 rounded-circle d-inline-flex mx-auto mb-3 animate-success-pop">
                             <i class="bi bi-patch-check-fill display-3"></i>
                         </div>
                         <h2 class="fw-bold text-dark mb-2">Поздравляем! Оплата прошла успешно</h2>
@@ -111,6 +111,14 @@
 
     <!-- Chat Widget -->
     <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.launchDoubleConfetti) {
+                window.launchDoubleConfetti();
+            }
+        });
+    </script>
 </body>
 </html>
 

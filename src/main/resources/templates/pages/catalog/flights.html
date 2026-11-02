@@ -83,7 +83,7 @@
 
             <!-- Flights List -->
             <div th:unless="${flightsPage.empty}" class="d-flex flex-column gap-3 mb-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 flight-card" th:each="flight : ${flightsPage.content}">
+                <div class="card border-0 shadow-sm rounded-4 p-4 flight-card hover-elevate" th:each="flight : ${flightsPage.content}" data-aos="fade-up">
                     <div class="row align-items-center g-3">
                         <!-- Airline & Flight Code -->
                         <div class="col-md-3">
@@ -139,7 +139,7 @@
                                         @click="addFlightToCart(Number($el.dataset.flightId))">
                                     <i class="bi bi-cart-plus me-1"></i>В корзину
                                 </button>
-                                <a th:href="@{'/booking?flightId=' + ${flight.id()}}" class="btn btn-warning fw-bold rounded-pill shadow-sm">
+                                <a th:href="@{'/booking?flightId=' + ${flight.id()}}" class="btn btn-warning fw-bold rounded-pill shadow-sm btn-shimmer">
                                     Купить билет
                                 </a>
                             </div>

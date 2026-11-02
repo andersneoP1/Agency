@@ -159,7 +159,7 @@
                         </div>
 
                         <!-- Submit CTA -->
-                        <button class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm"
+                        <button class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm btn-shimmer"
                             :disabled="isSubmitting" @click="submitBooking()">
                             <span x-show="!isSubmitting"><i class="bi bi-credit-card me-2"></i>Перейти к оплате</span>
                             <span x-show="isSubmitting" style="display: none;"><span
@@ -235,6 +235,9 @@
                             this.finalPrice = Number(data.finalAmount) || (this.originalPrice - this.discountAmount);
                             this.promoApplied = true;
                             this.promoMessage = data.message || ('Скидка ' + data.discountPercent + '% успешно применена!');
+                            if (window.launchConfetti) {
+                                window.launchConfetti({ particleCount: 70, spread: 60 });
+                            }
                         } else {
                             this.promoError = true;
                             this.promoMessage = data.detail || 'Не удалось применить промокод';

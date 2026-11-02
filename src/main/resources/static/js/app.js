@@ -107,10 +107,20 @@ window.NT_Compare = {
         const countEl = document.getElementById('globalCompareCount');
         if (bar && countEl) {
             countEl.textContent = count;
-            if (window.location.pathname === '/compare') {
-                bar.style.display = 'none';
+            if (window.location.pathname === '/compare' || count === 0) {
+                bar.style.opacity = '0';
+                bar.style.transform = 'translate(-50%, 40px)';
+                setTimeout(() => {
+                    if (window.NT_Compare.getIds().length === 0 || window.location.pathname === '/compare') {
+                        bar.style.display = 'none';
+                    }
+                }, 300);
             } else {
-                bar.style.display = count > 0 ? 'block' : 'none';
+                bar.style.display = 'block';
+                requestAnimationFrame(() => {
+                    bar.style.opacity = '1';
+                    bar.style.transform = 'translate(-50%, 0)';
+                });
             }
         }
 
@@ -122,7 +132,94 @@ window.NT_Compare = {
     }
 };
 
+// Global Festive Confetti Burst
+window.launchConfetti = function(options) {
+    if (typeof confetti === 'function') {
+        confetti(Object.assign({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        }, options || {}));
+    }
+};
+
+window.launchDoubleConfetti = function() {
+    if (typeof confetti !== 'function') return;
+    const end = Date.now() + 2 * 1000;
+    const colors = ['#ffc107', '#0d6efd', '#198754', '#dc3545', '#0dcaf0'];
+
+    (function frame() {
+        confetti({
+            particleCount: 4,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: colors
+        });
+        confetti({
+            particleCount: 4,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: colors
+        });
+
+        if (Date.now() < end) {
+            requestAnimationFrame(frame);
+        }
+    }());
+};
+
+// Animated Number Counter via IntersectionObserver
+function initCounters() {
+    const counters = document.querySelectorAll('.stat-counter');
+    if (!counters.length) return;
+
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const targetEl = entry.target;
+                const targetVal = parseFloat(targetEl.dataset.target) || 0;
+                const isFloat = targetEl.dataset.float === 'true';
+                const prefix = targetEl.dataset.prefix || '';
+                const suffix = targetEl.dataset.suffix || '';
+                const duration = 1800;
+                const start = performance.now();
+
+                function step(now) {
+                    const progress = Math.min((now - start) / duration, 1);
+                    const ease = 1 - Math.pow(1 - progress, 4);
+                    const current = targetVal * ease;
+                    targetEl.textContent = prefix + (isFloat ? current.toFixed(1) : Math.floor(current).toLocaleString('ru-RU')) + suffix;
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        targetEl.textContent = prefix + (isFloat ? targetVal.toFixed(1) : targetVal.toLocaleString('ru-RU')) + suffix;
+                    }
+                }
+                requestAnimationFrame(step);
+                obs.unobserve(targetEl);
+            }
+        });
+    }, { threshold: 0.2 });
+
+    counters.forEach(c => observer.observe(c));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize AOS animations
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 650,
+            once: true,
+            offset: 40,
+            easing: 'ease-out-cubic'
+        });
+    }
+
+    // Initialize Animated Counters
+    initCounters();
+
     // Initialize Comparison UI
     window.NT_Compare.updateUI();
 

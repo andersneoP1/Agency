@@ -41,8 +41,8 @@
 
             <!-- Favorites Grid -->
             <div th:unless="${favoritesPage.empty}" class="row g-4">
-                <div class="col-md-4" th:each="tour : ${favoritesPage.content}">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
+                <div class="col-md-4" th:each="tour : ${favoritesPage.content}" data-aos="fade-up">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative tour-card hover-elevate">
                         <button class="btn btn-sm btn-danger rounded-circle position-absolute top-0 end-0 m-3 shadow-sm"
                                 th:data-tour-id="${tour.id()}" @click="removeFavorite(Number($el.dataset.tourId))" title="Удалить из избранного" style="z-index: 2;">
                             <i class="bi bi-trash3"></i>
@@ -51,7 +51,7 @@
                         <a th:href="@{'/tours/' + ${tour.id()}}" class="text-decoration-none">
                             <div style="height: 200px; overflow: hidden;">
                                 <img th:src="${tour.imageUrl() ?: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500'}" 
-                                     class="w-100 h-100 object-fit-cover" th:alt="${tour.title()}">
+                                     class="w-100 h-100 object-fit-cover card-img-zoom" th:alt="${tour.title()}">
                             </div>
                         </a>
 

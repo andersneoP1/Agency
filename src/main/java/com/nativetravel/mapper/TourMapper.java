@@ -8,7 +8,7 @@ import org.mapstruct.ReportingPolicy;
 /**
  * MapStruct маппер для сущности Tour.
  */
-@Mapper(componentModel = "spring", uses = {HotelMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", uses = { HotelMapper.class }, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TourMapper {
 
     TourDto toDto(Tour tour);

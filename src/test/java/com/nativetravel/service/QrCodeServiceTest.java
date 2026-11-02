@@ -33,4 +33,3 @@ class QrCodeServiceTest {
         assertThat(base64).startsWith("data:image/png;base64,");
     }
 }
-
