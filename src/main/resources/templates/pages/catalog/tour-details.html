@@ -178,7 +178,8 @@
                                     <span x-text="isFav ? 'В избранном' : 'В избранное'"></span>
                                 </button>
                                 <button class="btn btn-outline-secondary w-50 rounded-pill fw-semibold"
-                                        @click="addToCompare([[${tour.id()}]])">
+                                        th:data-tour-id="${tour.id()}"
+                                        onclick="window.NT_Compare.add(Number(this.dataset.tourId))">
                                     <i class="bi bi-arrow-left-right me-1"></i>Сравнить
                                 </button>
                             </div>

@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/head :: head(${pageTitle ?: 'Сравнение туров'})}">
     <title>Сравнение туров | Native Travel</title>
 </head>
-<body class="d-flex flex-column h-100 bg-light" x-data="comparePage()">
+<body class="d-flex flex-column h-100 bg-light">
 
     <!-- Header Navigation -->
     <header th:replace="~{fragments/navbar :: navbar('compare')}"></header>
@@ -27,7 +27,7 @@
                     <p class="text-muted mb-0">Сопоставление условий, отелей и цен (до 4 туров)</p>
                 </div>
                 <div th:unless="${#lists.isEmpty(tours)}">
-                    <button class="btn btn-outline-danger btn-sm rounded-pill" @click="clearAllCompare()">
+                    <button class="btn btn-outline-danger btn-sm rounded-pill" onclick="window.NT_Compare.clear()">
                         <i class="bi bi-trash3 me-1"></i> Очистить сравнение
                     </button>
                 </div>
@@ -54,7 +54,8 @@
                                 <th style="width: 20%;" class="p-3 text-secondary">Параметр</th>
                                 <th th:each="tour : ${tours}" style="width: 20%;" class="p-3 text-center position-relative">
                                     <button class="btn btn-sm btn-outline-secondary rounded-circle position-absolute top-0 end-0 m-2"
-                                            @click="removeCompare([[${tour.id()}]])" title="Убрать из сравнения">
+                                            th:data-tour-id="${tour.id()}"
+                                            onclick="window.NT_Compare.remove(Number(this.dataset.tourId))" title="Убрать из сравнения">
                                         <i class="bi bi-x"></i>
                                     </button>
                                     <img th:src="${tour.imageUrl() ?: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300'}" 
@@ -140,27 +141,5 @@
 
     <!-- Chat Widget -->
     <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
-
-    <script>
-        function comparePage() {
-            return {
-                removeCompare(id) {
-                    let list = JSON.parse(localStorage.getItem('nt_compare_tours') || '[]');
-                    list = list.filter(x => x !== id);
-                    localStorage.setItem('nt_compare_tours', JSON.stringify(list));
-                    if (list.length > 0) {
-                        window.location.href = '/compare?ids=' + list.join(',');
-                    } else {
-                        window.location.href = '/compare';
-                    }
-                },
-                clearAllCompare() {
-                    localStorage.removeItem('nt_compare_tours');
-                    window.location.href = '/compare';
-                }
-            }
-        }
-    </script>
 </body>
 </html>
-

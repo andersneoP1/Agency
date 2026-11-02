@@ -27,7 +27,7 @@
                 <ul class="list-unstyled small d-flex flex-column gap-2">
                     <li><a th:href="@{/tours}" class="text-secondary text-decoration-none text-hover-light" th:text="#{nav.tours}">Туры</a></li>
                     <li><a th:href="@{/flights}" class="text-secondary text-decoration-none text-hover-light" th:text="#{nav.flights}">Авиабилеты</a></li>
-                    <li><a th:href="@{/compare}" class="text-secondary text-decoration-none text-hover-light" th:text="#{nav.compare}">Сравнение</a></li>
+                    <li><a th:href="@{/compare}" onclick="window.NT_Compare ? window.NT_Compare.goToCompare(event) : true" class="text-secondary text-decoration-none text-hover-light" th:text="#{nav.compare}">Сравнение</a></li>
                     <li><a th:href="@{/about}" class="text-secondary text-decoration-none text-hover-light" th:text="#{nav.about}">О нас</a></li>
                     <li><a th:href="@{/faq}" class="text-secondary text-decoration-none text-hover-light" th:text="#{nav.faq}">FAQ</a></li>
                 </ul>
@@ -68,6 +68,23 @@
             </div>
         </div>
     </div>
+
+    <!-- Global Floating Compare Bar (Interactive on ALL pages) -->
+    <div id="globalCompareBar" class="position-fixed shadow-lg" style="bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 1040; display: none;">
+        <div class="badge bg-primary text-white p-3 rounded-pill shadow-lg d-flex align-items-center gap-2" style="font-size: 0.95rem; border: 2px solid rgba(255,255,255,0.3);">
+            <i class="bi bi-arrow-left-right fs-6"></i>
+            <span>Выбрано для сравнения: <strong id="globalCompareCount">0</strong>/4</span>
+            <button class="btn btn-sm btn-light rounded-pill fw-bold ms-2 px-3 text-primary shadow-sm" onclick="window.NT_Compare.goToCompare(event)">
+                Сравнить <i class="bi bi-arrow-right"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-light rounded-circle ms-1" onclick="window.NT_Compare.clear()" title="Сбросить">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </footer>
 </body>
 </html>

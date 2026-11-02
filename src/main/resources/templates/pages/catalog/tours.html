@@ -29,17 +29,12 @@
                     <p class="text-muted mb-0">Найдено предложений: <strong th:text="${toursPage.totalElements}">0</strong></p>
                 </div>
                 
-                <!-- Floating Compare Toolbar -->
-                <div x-show="selectedForCompare.length > 0" x-cloak class="badge bg-primary text-white p-3 rounded-pill shadow-sm d-flex align-items-center gap-2">
+                <!-- Compare Toolbar Quick Link -->
+                <button onclick="window.NT_Compare.goToCompare(event)" class="btn btn-outline-primary rounded-pill shadow-sm d-flex align-items-center gap-2 px-3 py-2">
                     <i class="bi bi-arrow-left-right"></i>
-                    <span>Выбрано для сравнения: <strong x-text="selectedForCompare.length"></strong>/4</span>
-                    <button class="btn btn-sm btn-light rounded-pill fw-bold ms-2" @click="goToCompare()">
-                        Сравнить <i class="bi bi-arrow-right"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-light rounded-circle" @click="selectedForCompare = []" title="Сбросить">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>
+                    <span>Выбрано для сравнения: <strong class="global-compare-badge">0</strong>/4</span>
+                    <span class="badge bg-primary rounded-pill ms-1">Сравнить</span>
+                </button>
             </div>
 
             <div class="row g-4">
@@ -193,11 +188,11 @@
                                         <div class="d-flex gap-2">
                                             <!-- Compare Checkbox -->
                                             <div class="form-check d-flex align-items-center" title="Добавить к сравнению">
-                                                <input class="form-check-input" type="checkbox" 
-                                                       :checked="selectedForCompare.includes([[${tour.id()}]])"
-                                                       @change="toggleCompare([[${tour.id()}]])"
-                                                       id="compareCheck-[[${tour.id()}]]">
-                                                <label class="form-check-label ms-1 small text-muted" for="compareCheck-[[${tour.id()}]]">Сравнить</label>
+                                                <input class="form-check-input tour-compare-checkbox" type="checkbox" 
+                                                       th:data-tour-id="${tour.id()}"
+                                                       th:id="'compareCheck-' + ${tour.id()}"
+                                                       onchange="window.NT_Compare.toggle(Number(this.dataset.tourId))">
+                                                <label class="form-check-label ms-1 small text-muted" th:for="'compareCheck-' + ${tour.id()}">Сравнить</label>
                                             </div>
                                             <!-- Detail Button -->
                                             <a th:href="@{'/tours/' + ${tour.id()}}" class="btn btn-warning fw-bold btn-sm px-3 rounded-pill shadow-sm">
@@ -247,23 +242,6 @@
     <script>
         function tourCatalog() {
             return {
-                selectedForCompare: JSON.parse(localStorage.getItem('nt_compare_tours') || '[]'),
-                toggleCompare(id) {
-                    if (this.selectedForCompare.includes(id)) {
-                        this.selectedForCompare = this.selectedForCompare.filter(x => x !== id);
-                    } else {
-                        if (this.selectedForCompare.length >= 4) {
-                            alert('Можно выбрать не более 4 туров для сравнения');
-                            return;
-                        }
-                        this.selectedForCompare.push(id);
-                    }
-                    localStorage.setItem('nt_compare_tours', JSON.stringify(this.selectedForCompare));
-                },
-                goToCompare() {
-                    if (this.selectedForCompare.length === 0) return;
-                    window.location.href = '/compare?ids=' + this.selectedForCompare.join(',');
-                },
                 async toggleFavorite(event, tourId) {
                     const btn = event.currentTarget;
                     try {
@@ -278,6 +256,12 @@
                             alert('Тур добавлен в избранное!');
                         }
                     } catch (e) {
+                        console.error(e);
+                    }
+                }
+            }
+        }
+    </script>
                         console.error(e);
                     }
                 }

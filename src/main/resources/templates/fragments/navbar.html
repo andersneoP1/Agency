@@ -33,7 +33,10 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" th:classappend="${activePage == 'compare'} ? 'active fw-bold text-warning'"
-                       th:href="@{/compare}" th:text="#{nav.compare}">Сравнение</a>
+                       th:href="@{/compare}" onclick="window.NT_Compare ? window.NT_Compare.goToCompare(event) : true">
+                        <span th:text="#{nav.compare}">Сравнение</span>
+                        <span class="global-compare-badge badge bg-warning text-dark rounded-pill ms-1" style="display: none;">0</span>
+                    </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" th:classappend="${activePage == 'about'} ? 'active fw-bold text-warning'"
@@ -47,6 +50,12 @@
 
             <!-- Right Side: Utilities, Language, Auth -->
             <div class="d-flex align-items-center gap-3">
+                <!-- Compare Quick Button -->
+                <a th:href="@{/compare}" onclick="window.NT_Compare ? window.NT_Compare.goToCompare(event) : true" class="btn btn-outline-info btn-sm position-relative" title="Сравнение туров">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span class="global-compare-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">0</span>
+                </a>
+
                 <!-- Favorites Link -->
                 <a th:href="@{/favorites}" class="btn btn-outline-light btn-sm position-relative" title="Избранное">
                     <i class="bi bi-heart"></i>
