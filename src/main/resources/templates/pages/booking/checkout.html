@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Оформление заказа'})}">
+    <title>Оформление заказа | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" 
+      x-data="checkoutApp({
+          tourId: [[${tour != null ? tour.id() : 'null'}]],
+          flightId: [[${flight != null ? flight.id() : 'null'}]],
+          originalPrice: [[${tour != null ? tour.price() : (flight != null ? flight.price() : 0)}]]
+      })">
+
+    <!-- Header Navigation -->
+    <header th:replace="~{fragments/navbar :: navbar('booking')}"></header>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 py-4">
+        <div class="container">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Главная</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/cart}" class="text-decoration-none">Корзина</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Оформление бронирования</li>
+                </ol>
+            </nav>
+
+            <!-- Stepper Progress Bar -->
+            <div class="row justify-content-center mb-5">
+                <div class="col-md-8">
+                    <div class="d-flex justify-content-between position-relative">
+                        <div class="text-center position-relative" style="z-index: 2;">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto shadow-sm" style="width: 44px; height: 44px;">
+                                <strong>1</strong>
+                            </div>
+                            <small class="fw-bold mt-1 d-block text-primary">Бронирование</small>
+                        </div>
+                        <div class="text-center position-relative" style="z-index: 2;">
+                            <div class="bg-light border text-muted rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 44px; height: 44px;">
+                                <strong>2</strong>
+                            </div>
+                            <small class="text-muted mt-1 d-block">Оплата</small>
+                        </div>
+                        <div class="text-center position-relative" style="z-index: 2;">
+                            <div class="bg-light border text-muted rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 44px; height: 44px;">
+                                <strong>3</strong>
+                            </div>
+                            <small class="text-muted mt-1 d-block">Ваучер и QR</small>
+                        </div>
+                        <div class="position-absolute top-50 start-0 translate-middle-y w-100 bg-secondary bg-opacity-25" style="height: 3px; z-index: 1;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Main Form Column -->
+                <div class="col-lg-8">
+                    <!-- Traveler Info Card -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                        <h4 class="fw-bold mb-3"><i class="bi bi-person-badge text-warning me-2"></i>Данные путешественника</h4>
+                        <p class="text-muted small mb-4">Пожалуйста, проверьте контактную информацию. На этот адрес придет ваучер с QR-кодом.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Имя и фамилия</label>
+                                <input type="text" class="form-control" x-model="traveler.fullName" placeholder="Иван Иванов" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Email для ваучера</label>
+                                <input type="email" class="form-control" x-model="traveler.email" placeholder="ivan@example.com" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Номер телефона</label>
+                                <input type="tel" class="form-control" x-model="traveler.phone" placeholder="+7 (999) 000-00-00">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Способ оплаты по умолчанию</label>
+                                <select class="form-select" x-model="paymentMethod">
+                                    <option value="CARD">Банковская карта (МИР, Visa, MC)</option>
+                                    <option value="SBP">Система быстрых платежей (СБП)</option>
+                                    <option value="CRYPTO">Криптовалюта (USDT TRC20)</option>
+                                    <option value="CASH">Наличными в офисе агентства</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Promo Code Card -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                        <h5 class="fw-bold mb-2"><i class="bi bi-ticket-perforated text-primary me-2"></i>Промокод на скидку</h5>
+                        <p class="text-muted small mb-3">Введите промокод (например, <strong class="text-dark">WELCOME10</strong> или <strong class="text-dark">SUMMER20</strong>) для получения персональной скидки.</p>
+
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control" placeholder="Код купона" x-model="promoInput" :disabled="promoApplied">
+                            <button class="btn btn-primary fw-bold px-4" type="button" @click="applyPromo()" :disabled="promoApplied || !promoInput.trim()">
+                                Применить
+                            </button>
+                            <button class="btn btn-outline-secondary" type="button" x-show="promoApplied" @click="resetPromo()">
+                                Сбросить
+                            </button>
+                        </div>
+                        <div x-show="promoMessage" class="mt-2 small" :class="promoError ? 'text-danger' : 'text-success'" x-text="promoMessage"></div>
+                    </div>
+                </div>
+
+                <!-- Order Summary Sidebar -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 80px;">
+                        <h4 class="fw-bold mb-3">Детали заказа</h4>
+
+                        <!-- Selected Tour -->
+                        <div th:if="${tour != null}" class="mb-3 border-bottom pb-3">
+                            <span class="badge bg-warning text-dark mb-1">Тур</span>
+                            <h6 class="fw-bold mb-1" th:text="${tour.title()}">Тур</h6>
+                            <small class="text-muted d-block" th:text="${tour.country() + ', ' + tour.city()}">Анталья</small>
+                            <small class="text-secondary" th:text="${tour.durationDays()} + ' дней (' + ${#temporals.format(tour.startDate(), 'dd.MM')} + ' - ' + ${#temporals.format(tour.endDate(), 'dd.MM.yyyy')} + ')'">Даты</small>
+                        </div>
+
+                        <!-- Selected Flight -->
+                        <div th:if="${flight != null}" class="mb-3 border-bottom pb-3">
+                            <span class="badge bg-primary mb-1">Авиабилет</span>
+                            <h6 class="fw-bold mb-1" th:text="${flight.airline() + ' ' + flight.flightNumber()}">Рейс</h6>
+                            <small class="text-muted d-block" th:text="${flight.departureCity() + ' → ' + flight.arrivalCity()}">Москва - Анталья</small>
+                            <small class="text-secondary" th:text="${#temporals.format(flight.departureTime(), 'dd.MM.yyyy HH:mm')}">15.06 08:30</small>
+                        </div>
+
+                        <!-- Price Breakdown -->
+                        <div class="d-flex justify-content-between text-muted small mb-2">
+                            <span>Стоимость:</span>
+                            <span x-text="formatMoney(originalPrice) + ' ₽'"></span>
+                        </div>
+                        <div class="d-flex justify-content-between text-success small mb-2" x-show="discountAmount > 0">
+                            <span>Скидка по промокоду:</span>
+                            <span x-text="'-' + formatMoney(discountAmount) + ' ₽'"></span>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted small mb-3">
+                            <span>Сервисный сбор:</span>
+                            <span class="text-success fw-bold">0 ₽</span>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="d-flex justify-content-between align-items-baseline mb-4">
+                            <span class="fs-5 fw-bold text-dark">К оплате:</span>
+                            <h2 class="h3 fw-extrabold text-primary mb-0" x-text="formatMoney(finalPrice) + ' ₽'"></h2>
+                        </div>
+
+                        <!-- Submit CTA -->
+                        <button class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm"
+                                :disabled="isSubmitting"
+                                @click="submitBooking()">
+                            <span x-show="!isSubmitting"><i class="bi bi-credit-card me-2"></i>Перейти к оплате</span>
+                            <span x-show="isSubmitting"><span class="spinner-border spinner-border-sm me-2"></span>Оформление...</span>
+                        </button>
+
+                        <div class="text-center mt-3">
+                            <small class="text-muted"><i class="bi bi-shield-check text-success me-1"></i>Безопасный защищенный платеж</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script>
+        function checkoutApp(config) {
+            return {
+                tourId: config.tourId,
+                flightId: config.flightId,
+                originalPrice: Number(config.originalPrice),
+                discountAmount: 0,
+                finalPrice: Number(config.originalPrice),
+                promoInput: '',
+                promoApplied: false,
+                promoMessage: '',
+                promoError: false,
+                paymentMethod: 'CARD',
+                isSubmitting: false,
+                traveler: {
+                    fullName: '',
+                    email: '',
+                    phone: ''
+                },
+                formatMoney(amount) {
+                    return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                },
+                async applyPromo() {
+                    this.promoError = false;
+                    this.promoMessage = '';
+                    try {
+                        const res = await fetch('/api/v1/promocodes/validate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ code: this.promoInput.trim(), orderAmount: this.originalPrice })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            this.discountAmount = data.discountAmount;
+                            this.finalPrice = data.finalAmount;
+                            this.promoApplied = true;
+                            this.promoMessage = data.message;
+                        } else {
+                            this.promoError = true;
+                            this.promoMessage = data.detail || 'Не удалось применить промокод';
+                        }
+                    } catch (e) {
+                        this.promoError = true;
+                        this.promoMessage = 'Ошибка сети при проверке промокода';
+                    }
+                },
+                resetPromo() {
+                    this.discountAmount = 0;
+                    this.finalPrice = this.originalPrice;
+                    this.promoApplied = false;
+                    this.promoInput = '';
+                    this.promoMessage = '';
+                },
+                async submitBooking() {
+                    this.isSubmitting = true;
+                    try {
+                        const res = await fetch('/api/v1/bookings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                tourId: this.tourId,
+                                flightId: this.flightId,
+                                promoCode: this.promoApplied ? this.promoInput.trim() : null,
+                                paymentMethod: this.paymentMethod
+                            })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            window.location.href = '/payment?bookingId=' + data.id;
+                        } else {
+                            alert(data.detail || 'Не удалось оформить бронирование');
+                            this.isSubmitting = false;
+                        }
+                    } catch (e) {
+                        alert('Ошибка оформления заказа');
+                        this.isSubmitting = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

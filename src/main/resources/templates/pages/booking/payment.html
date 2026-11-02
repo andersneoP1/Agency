@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Оплата заказа'})}">
+    <title>Оплата заказа | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" 
+      x-data="paymentApp({
+          bookingId: [[${booking.id()}]],
+          bookingNumber: '[[${booking.bookingNumber()}]]',
+          totalPrice: [[${booking.totalPrice()}]],
+          initialMethod: '[[${booking.paymentMethod() ?: 'CARD'}]]'
+      })">
+
+    <!-- Header Navigation -->
+    <header th:replace="~{fragments/navbar :: navbar('booking')}"></header>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 py-4">
+        <div class="container">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Главная</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/cart}" class="text-decoration-none">Корзина</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Оплата заказа</li>
+                </ol>
+            </nav>
+
+            <!-- Stepper Progress Bar -->
+            <div class="row justify-content-center mb-5">
+                <div class="col-md-8">
+                    <div class="d-flex justify-content-between position-relative">
+                        <div class="text-center position-relative" style="z-index: 2;">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto shadow-sm" style="width: 44px; height: 44px;">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                            <small class="text-muted mt-1 d-block">Бронирование</small>
+                        </div>
+                        <div class="text-center position-relative" style="z-index: 2;">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto shadow-sm" style="width: 44px; height: 44px;">
+                                <strong>2</strong>
+                            </div>
+                            <small class="fw-bold mt-1 d-block text-primary">Оплата</small>
+                        </div>
+                        <div class="text-center position-relative" style="z-index: 2;">
+                            <div class="bg-light border text-muted rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 44px; height: 44px;">
+                                <strong>3</strong>
+                            </div>
+                            <small class="text-muted mt-1 d-block">Ваучер и QR</small>
+                        </div>
+                        <div class="position-absolute top-50 start-0 translate-middle-y w-100 bg-secondary bg-opacity-25" style="height: 3px; z-index: 1;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 justify-content-center">
+                <!-- Payment Methods & Form -->
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                        <h4 class="fw-bold mb-3"><i class="bi bi-shield-lock-fill text-success me-2"></i>Выбор способа оплаты</h4>
+                        <p class="text-muted small mb-4">Выберите наиболее удобный для вас вариант безопасной оплаты.</p>
+
+                        <!-- Methods Tabs/Pills -->
+                        <div class="row g-2 mb-4">
+                            <div class="col-6 col-md-3">
+                                <button type="button" class="btn w-100 py-3 rounded-4 border d-flex flex-column align-items-center gap-2"
+                                        :class="method === 'CARD' ? 'btn-primary text-white shadow-sm' : 'btn-light'"
+                                        @click="method = 'CARD'">
+                                    <i class="bi bi-credit-card-2-front fs-4"></i>
+                                    <small class="fw-bold">Банк. карта</small>
+                                </button>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <button type="button" class="btn w-100 py-3 rounded-4 border d-flex flex-column align-items-center gap-2"
+                                        :class="method === 'SBP' ? 'btn-primary text-white shadow-sm' : 'btn-light'"
+                                        @click="method = 'SBP'">
+                                    <i class="bi bi-qr-code-scan fs-4"></i>
+                                    <small class="fw-bold">СБП (QR)</small>
+                                </button>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <button type="button" class="btn w-100 py-3 rounded-4 border d-flex flex-column align-items-center gap-2"
+                                        :class="method === 'CRYPTO' ? 'btn-primary text-white shadow-sm' : 'btn-light'"
+                                        @click="method = 'CRYPTO'">
+                                    <i class="bi bi-currency-bitcoin fs-4"></i>
+                                    <small class="fw-bold">Криптовалюта</small>
+                                </button>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <button type="button" class="btn w-100 py-3 rounded-4 border d-flex flex-column align-items-center gap-2"
+                                        :class="method === 'CASH' ? 'btn-primary text-white shadow-sm' : 'btn-light'"
+                                        @click="method = 'CASH'">
+                                    <i class="bi bi-cash-stack fs-4"></i>
+                                    <small class="fw-bold">Наличные</small>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Card Form -->
+                        <div x-show="method === 'CARD'" class="p-3 bg-light rounded-4">
+                            <h6 class="fw-bold mb-3">Данные банковской карты (тестовая оплата)</h6>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">Номер карты</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                                    <input type="text" class="form-control" x-model="card.number" placeholder="4276 3800 1234 5678" maxlength="19">
+                                </div>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label small text-muted">Срок действия (ММ/ГГ)</label>
+                                    <input type="text" class="form-control" x-model="card.expiry" placeholder="12/28" maxlength="5">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small text-muted">CVV / CVC</label>
+                                    <input type="password" class="form-control" x-model="card.cvv" placeholder="123" maxlength="3">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label small text-muted">Имя владельца (как на карте)</label>
+                                <input type="text" class="form-control text-uppercase" x-model="card.holder" placeholder="IVAN PETROV">
+                            </div>
+                        </div>
+
+                        <!-- SBP (QR) Stub -->
+                        <div x-show="method === 'SBP'" class="p-4 bg-light rounded-4 text-center">
+                            <h6 class="fw-bold mb-2">Оплата по Системе быстрых платежей (СБП)</h6>
+                            <p class="text-muted small mb-3">Отсканируйте QR-код в мобильном приложении любого банка</p>
+                            <div class="bg-white p-3 rounded-4 shadow-sm d-inline-block mb-3">
+                                <i class="bi bi-qr-code display-1 text-dark"></i>
+                            </div>
+                            <div class="small text-muted">Сумма к списанию: <strong class="text-dark" th:text="${#numbers.formatDecimal(booking.totalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">80 910 ₽</strong></div>
+                        </div>
+
+                        <!-- Crypto Stub -->
+                        <div x-show="method === 'CRYPTO'" class="p-4 bg-light rounded-4">
+                            <h6 class="fw-bold mb-2">Оплата криптовалютой USDT (TRC-20)</h6>
+                            <p class="text-muted small mb-3">Переведите эквивалент суммы на указанный адрес смарт-контракта:</p>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control font-monospace small" value="TX9bZ74kM52NtpQ6r8W2A3YdE9817fghJk" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="alert('Адрес скопирован!')">Копировать</button>
+                            </div>
+                            <small class="text-muted">Курс пересчета: 1 USDT = 92.50 ₽</small>
+                        </div>
+
+                        <!-- Cash Stub -->
+                        <div x-show="method === 'CASH'" class="p-4 bg-light rounded-4">
+                            <h6 class="fw-bold mb-2">Оплата наличными в фирменном офисе</h6>
+                            <p class="text-muted small mb-3">Бронирование будет закреплено за вами на 24 часа. Вы можете оплатить заказ в нашем офисе:</p>
+                            <ul class="list-unstyled small text-muted mb-0">
+                                <li><i class="bi bi-geo-alt-fill text-danger me-2"></i>г. Москва, ул. Тверская, д. 12, офис 305</li>
+                                <li><i class="bi bi-clock me-2"></i>Ежедневно с 09:00 до 21:00</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Info & Submit Sidebar -->
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 80px;">
+                        <h5 class="fw-bold mb-3">Сведения о заказе</h5>
+
+                        <div class="p-3 bg-light rounded-3 mb-3">
+                            <span class="text-muted small d-block">Номер бронирования:</span>
+                            <strong class="fs-5 text-dark" th:text="${booking.bookingNumber()}">NT-2026-10293</strong>
+                        </div>
+
+                        <div th:if="${booking.tour() != null}" class="mb-3">
+                            <span class="text-muted small d-block">Тур:</span>
+                            <strong class="text-dark" th:text="${booking.tour().title()}">Тур</strong>
+                            <div class="small text-muted" th:text="${booking.tour().country() + ', ' + booking.tour().city()}">Курорт</div>
+                        </div>
+
+                        <div th:if="${booking.flight() != null}" class="mb-3">
+                            <span class="text-muted small d-block">Авиабилет:</span>
+                            <strong class="text-dark" th:text="${booking.flight().airline() + ' ' + booking.flight().flightNumber()}">Рейс</strong>
+                            <div class="small text-muted" th:text="${booking.flight().departureCity() + ' → ' + booking.flight().arrivalCity()}">Маршрут</div>
+                        </div>
+
+                        <div class="border-top pt-3 mb-4">
+                            <div class="d-flex justify-content-between text-muted small mb-1">
+                                <span>Базовая стоимость:</span>
+                                <span th:text="${#numbers.formatDecimal(booking.originalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-success small mb-2" th:if="${booking.discountAmount() > 0}">
+                                <span>Скидка:</span>
+                                <span th:text="'-' + ${#numbers.formatDecimal(booking.discountAmount(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">-8 990 ₽</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-baseline pt-2 border-top">
+                                <span class="fw-bold fs-5">Итого к списанию:</span>
+                                <h3 class="fw-extrabold text-primary mb-0" 
+                                    th:text="${#numbers.formatDecimal(booking.totalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">80 910 ₽</h3>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-success btn-lg fw-bold rounded-pill w-100 shadow-sm"
+                                :disabled="isPaying"
+                                @click="pay()">
+                            <span x-show="!isPaying"><i class="bi bi-lock-fill me-2"></i>Подтвердить и оплатить</span>
+                            <span x-show="isPaying"><span class="spinner-border spinner-border-sm me-2"></span>Обработка платежа...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script>
+        function paymentApp(config) {
+            return {
+                bookingId: config.bookingId,
+                bookingNumber: config.bookingNumber,
+                totalPrice: config.totalPrice,
+                method: config.initialMethod || 'CARD',
+                isPaying: false,
+                card: {
+                    number: '4276 3800 1234 5678',
+                    expiry: '12/28',
+                    cvv: '123',
+                    holder: 'IVAN PETROV'
+                },
+                async pay() {
+                    this.isPaying = true;
+                    try {
+                        const res = await fetch('/api/v1/payments', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                bookingId: this.bookingId,
+                                paymentMethod: this.method,
+                                cardNumber: this.card.number,
+                                cardHolder: this.card.holder,
+                                cardExpiry: this.card.expiry,
+                                cardCvv: this.card.cvv
+                            })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            window.location.href = '/payment/success?bookingId=' + this.bookingId;
+                        } else {
+                            alert(data.detail || 'Не удалось провести оплату');
+                            this.isPaying = false;
+                        }
+                    } catch (e) {
+                        alert('Ошибка проведения платежа');
+                        this.isPaying = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -14,6 +14,8 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -22,9 +24,11 @@ import java.util.Set;
 /**
  * Сущность пользователя системы.
  */
-@Data
 @Entity
 @Table(name = "users")
+@Data
+@EqualsAndHashCode(of = "id")
+@ToString(exclude = {"roles", "passwordHash"})
 public class User {
 
     @Id
@@ -103,5 +107,17 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();
+    }
+
+    public String getFullName() {
+        if (firstName != null && lastName != null) {
+            return firstName + " " + lastName;
+        }
+        return firstName != null ? firstName : (lastName != null ? lastName : email);
+    }
+
+    public boolean isAdmin() {
+        return roles != null && roles.stream()
+                .anyMatch(r -> r.getName() == RoleType.ROLE_ADMIN);
     }
 }

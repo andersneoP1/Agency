@@ -1,7 +1,6 @@
 package com.nativetravel.service.impl;
 
 import com.nativetravel.service.EmailService;
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -75,7 +74,7 @@ public class EmailServiceImpl implements EmailService {
             }
 
             mailSender.send(message);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             log.error("Failed to send booking confirmation email to {}: {}", toEmail, e.getMessage());
         }
     }

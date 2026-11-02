@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Корзина'})}">
+    <title>Корзина | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" x-data="cartApp()">
+
+    <!-- Header Navigation -->
+    <header th:replace="~{fragments/navbar :: navbar('cart')}"></header>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 py-4">
+        <div class="container">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Главная</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Корзина покупок</li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 fw-bold text-dark mb-1"><i class="bi bi-cart3 text-warning me-2"></i>Ваша корзина</h1>
+                    <p class="text-muted mb-0">Позиций в корзине: <strong th:text="${cart.totalItems()}">0</strong></p>
+                </div>
+                <div th:unless="${#lists.isEmpty(cart.items())}">
+                    <button class="btn btn-outline-danger btn-sm rounded-pill" @click="clearCart()">
+                        <i class="bi bi-trash3 me-1"></i> Очистить корзину
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(cart.items())}" class="card border-0 shadow-sm rounded-4 p-5 text-center my-4">
+                <i class="bi bi-cart-x display-3 text-muted mb-3"></i>
+                <h3 class="fw-bold">Ваша корзина пуста</h3>
+                <p class="text-muted">Выберите подходящий тур или авиабилет в нашем каталоге и добавьте его в корзину.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a th:href="@{/tours}" class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-compass me-1"></i> Выбрать тур
+                    </a>
+                    <a th:href="@{/flights}" class="btn btn-outline-primary fw-bold px-4 py-2 rounded-pill">
+                        <i class="bi bi-airplane me-1"></i> Авиабилеты
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cart Content -->
+            <div th:unless="${#lists.isEmpty(cart.items())}" class="row g-4">
+                <!-- Items Column -->
+                <div class="col-lg-8">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="card border-0 shadow-sm rounded-4 p-4" th:each="item : ${cart.items()}">
+                            <div class="row align-items-center g-3">
+                                <!-- Image or Icon -->
+                                <div class="col-md-2 text-center">
+                                    <div th:if="${item.tour() != null}">
+                                        <img th:src="${item.tour().imageUrl() ?: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200'}" 
+                                             class="rounded-3 object-fit-cover shadow-sm w-100" style="height: 80px;" th:alt="${item.tour().title()}">
+                                    </div>
+                                    <div th:if="${item.flight() != null}" class="bg-primary-subtle text-primary p-3 rounded-3">
+                                        <i class="bi bi-airplane-fill fs-2"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="col-md-6">
+                                    <!-- Tour Item -->
+                                    <div th:if="${item.tour() != null}">
+                                        <span class="badge bg-warning text-dark mb-1">Тур</span>
+                                        <h5 class="fw-bold mb-1">
+                                            <a th:href="@{'/tours/' + ${item.tour().id()}}" class="text-dark text-decoration-none" th:text="${item.tour().title()}">Тур</a>
+                                        </h5>
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-geo-alt me-1 text-danger"></i>
+                                            <span th:text="${item.tour().country() + ', ' + item.tour().city()}">Курорт</span>
+                                        </small>
+                                        <small class="text-secondary">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            <span th:text="${#temporals.format(item.tour().startDate(), 'dd.MM')} + ' - ' + ${#temporals.format(item.tour().endDate(), 'dd.MM.yyyy')}">Даты</span>
+                                        </small>
+                                    </div>
+
+                                    <!-- Flight Item -->
+                                    <div th:if="${item.flight() != null}">
+                                        <span class="badge bg-primary mb-1">Авиабилет</span>
+                                        <h5 class="fw-bold mb-1" th:text="${item.flight().airline() + ' ' + item.flight().flightNumber()}">Авиарейс</h5>
+                                        <small class="text-muted d-block">
+                                            <span th:text="${item.flight().departureCity()}">Москва</span> → <span th:text="${item.flight().arrivalCity()}">Анталья</span>
+                                        </small>
+                                        <small class="text-secondary">
+                                            <i class="bi bi-clock me-1"></i>
+                                            <span th:text="${#temporals.format(item.flight().departureTime(), 'dd.MM.yyyy HH:mm')}">Время</span>
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Quantity & Price -->
+                                <div class="col-md-3 text-md-end">
+                                    <span class="text-muted small d-block">Кол-во: <strong th:text="${item.quantity()}">1</strong></span>
+                                    <h4 class="fw-extrabold text-primary mb-0" 
+                                        th:text="${#numbers.formatDecimal(item.subtotalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</h4>
+                                </div>
+
+                                <!-- Delete Action -->
+                                <div class="col-md-1 text-end">
+                                    <button class="btn btn-sm btn-outline-danger rounded-circle" 
+                                            @click="removeItem([[${item.id()}]])" title="Удалить">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Order Card -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 80px;">
+                        <h4 class="fw-bold mb-3">Итого к оплате</h4>
+
+                        <div class="d-flex justify-content-between text-muted mb-2">
+                            <span>Всего позиций:</span>
+                            <strong class="text-dark" th:text="${cart.totalItems()}">1</strong>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted mb-3">
+                            <span>Сервисный сбор:</span>
+                            <span class="text-success fw-bold">Бесплатно</span>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="d-flex justify-content-between align-items-baseline mb-4">
+                            <span class="fs-5 fw-bold text-dark">Сумма заказа:</span>
+                            <h2 class="h3 fw-extrabold text-primary mb-0" 
+                                th:text="${#numbers.formatDecimal(cart.totalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</h2>
+                        </div>
+
+                        <!-- Direct Checkout Form / Links -->
+                        <div class="d-grid gap-2">
+                            <!-- If single tour in cart -->
+                            <div th:if="${#lists.size(cart.items()) == 1 && cart.items()[0].tour() != null}">
+                                <a th:href="@{'/booking?tourId=' + ${cart.items()[0].tour().id()}}" 
+                                   class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>Перейти к оформлению
+                                </a>
+                            </div>
+                            <!-- If single flight in cart -->
+                            <div th:if="${#lists.size(cart.items()) == 1 && cart.items()[0].flight() != null}">
+                                <a th:href="@{'/booking?flightId=' + ${cart.items()[0].flight().id()}}" 
+                                   class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>Перейти к оформлению
+                                </a>
+                            </div>
+                            <!-- If multiple items in cart -->
+                            <div th:if="${#lists.size(cart.items()) > 1}">
+                                <a th:href="@{'/booking?tourId=' + ${cart.items()[0].tour() != null ? cart.items()[0].tour().id() : ''}}" 
+                                   class="btn btn-warning btn-lg fw-bold rounded-pill w-100 shadow-sm">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>Оформить бронирование
+                                </a>
+                            </div>
+
+                            <a th:href="@{/tours}" class="btn btn-outline-secondary rounded-pill mt-2">
+                                <i class="bi bi-plus-circle me-1"></i> Продолжить выбор
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script>
+        function cartApp() {
+            return {
+                async removeItem(itemId) {
+                    if (!confirm('Удалить эту позицию из корзины?')) return;
+                    try {
+                        const res = await fetch('/api/v1/cart/items/' + itemId, { method: 'DELETE' });
+                        if (res.ok) {
+                            window.location.reload();
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+                async clearCart() {
+                    if (!confirm('Вы уверены, что хотите полностью очистить корзину?')) return;
+                    try {
+                        const res = await fetch('/api/v1/cart', { method: 'DELETE' });
+                        if (res.ok) {
+                            window.location.reload();
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
