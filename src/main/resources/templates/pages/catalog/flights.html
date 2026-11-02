@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Поиск авиабилетов'})}">
+    <title>Авиабилеты | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" x-data="flightsApp()">
+
+    <!-- Header Navigation -->
+    <header th:replace="~{fragments/navbar :: navbar('flights')}"></header>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 py-4">
+        <div class="container">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Главная</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Авиабилеты</li>
+                </ol>
+            </nav>
+
+            <!-- Search Banner -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-primary text-white">
+                <h2 class="fw-bold mb-3"><i class="bi bi-airplane-engines me-2"></i>Поиск дешёвых авиабилетов</h2>
+                <p class="text-white-50 mb-4">Регулярные и чартерные рейсы от ведущих авиакомпаний мира</p>
+
+                <!-- Flight Search Form -->
+                <form th:action="@{/flights}" method="get" class="row g-3 bg-white text-dark p-3 rounded-4 shadow-sm">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-muted">Откуда</label>
+                        <select name="departureCity" class="form-select">
+                            <option value="">Все города</option>
+                            <option th:each="c : ${departureCities}" 
+                                    th:value="${c}" 
+                                    th:text="${c}"
+                                    th:selected="${filter != null && filter.departureCity() == c}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-muted">Куда</label>
+                        <select name="arrivalCity" class="form-select">
+                            <option value="">Все города</option>
+                            <option th:each="c : ${arrivalCities}" 
+                                    th:value="${c}" 
+                                    th:text="${c}"
+                                    th:selected="${filter != null && filter.arrivalCity() == c}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">Дата вылета</label>
+                        <input type="date" name="departureDate" class="form-control"
+                               th:value="${filter != null ? filter.departureDate() : ''}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">Макс. цена</label>
+                        <input type="number" name="maxPrice" class="form-control" placeholder="₽"
+                               th:value="${filter != null ? filter.maxPrice() : ''}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-warning w-100 fw-bold py-2 shadow-sm">
+                            <i class="bi bi-search me-1"></i> Найти
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Flights Results -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold mb-0">Доступные рейсы</h4>
+                <span class="text-muted small">Найдено: <strong th:text="${flightsPage.totalElements}">0</strong> рейсов</span>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${flightsPage.empty}" class="card border-0 shadow-sm rounded-4 p-5 text-center">
+                <i class="bi bi-airplane display-3 text-muted mb-3"></i>
+                <h4 class="fw-bold">Рейсов по выбранным параметрам не найдено</h4>
+                <p class="text-muted">Попробуйте выбрать другие города или очистить фильтр.</p>
+                <div>
+                    <a th:href="@{/flights}" class="btn btn-warning fw-bold px-4">Сбросить фильтры</a>
+                </div>
+            </div>
+
+            <!-- Flights List -->
+            <div th:unless="${flightsPage.empty}" class="d-flex flex-column gap-3 mb-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 flight-card" th:each="flight : ${flightsPage.content}">
+                    <div class="row align-items-center g-3">
+                        <!-- Airline & Flight Code -->
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-light p-3 rounded-circle text-primary">
+                                    <i class="bi bi-airplane-fill fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0 text-dark" th:text="${flight.airline()}">Аэрофлот</h5>
+                                    <small class="text-muted" th:text="${flight.flightNumber()}">SU-2130</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Route & Time Schedule -->
+                        <div class="col-md-5">
+                            <div class="d-flex align-items-center justify-content-between text-center">
+                                <div>
+                                    <span class="h4 fw-bold text-dark d-block mb-0" 
+                                          th:text="${#temporals.format(flight.departureTime(), 'HH:mm')}">08:30</span>
+                                    <small class="text-muted" th:text="${flight.departureCity()}">Москва</small>
+                                    <small class="text-secondary d-block" th:text="${#temporals.format(flight.departureTime(), 'dd.MM.yyyy')}">15.06</small>
+                                </div>
+
+                                <div class="px-3 flex-grow-1">
+                                    <div class="text-muted small mb-1"><i class="bi bi-clock me-1"></i>Прямой рейс</div>
+                                    <div class="position-relative">
+                                        <hr class="my-0 border-primary border-2">
+                                        <i class="bi bi-airplane position-absolute top-50 start-50 translate-middle text-primary bg-white px-2"></i>
+                                    </div>
+                                    <small class="text-success fw-semibold mt-1 d-block">
+                                        Мест: <span th:text="${flight.availableSeats()}">45</span>
+                                    </small>
+                                </div>
+
+                                <div>
+                                    <span class="h4 fw-bold text-dark d-block mb-0" 
+                                          th:text="${#temporals.format(flight.arrivalTime(), 'HH:mm')}">13:45</span>
+                                    <small class="text-muted" th:text="${flight.arrivalCity()}">Анталья</small>
+                                    <small class="text-secondary d-block" th:text="${#temporals.format(flight.arrivalTime(), 'dd.MM.yyyy')}">15.06</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price & CTA -->
+                        <div class="col-md-4 text-md-end">
+                            <span class="text-muted small d-block">Цена за 1 пассажира</span>
+                            <h3 class="fw-extrabold text-primary mb-3" 
+                                th:text="${#numbers.formatDecimal(flight.price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">18 500 ₽</h3>
+                            <div class="d-flex gap-2 justify-content-md-end">
+                                <button class="btn btn-outline-warning fw-bold rounded-pill"
+                                        @click="addFlightToCart([[${flight.id()}]])">
+                                    <i class="bi bi-cart-plus me-1"></i>В корзину
+                                </button>
+                                <a th:href="@{'/booking?flightId=' + ${flight.id()}}" class="btn btn-warning fw-bold rounded-pill shadow-sm">
+                                    Купить билет
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flights Pagination -->
+            <div th:if="${flightsPage.totalPages > 1}" class="d-flex justify-content-center mt-4">
+                <nav>
+                    <ul class="pagination pagination-rounded shadow-sm">
+                        <li class="page-item" th:classappend="${flightsPage.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{/flights(page=${flightsPage.number - 1}, departureCity=${filter.departureCity()}, arrivalCity=${filter.arrivalCity()}, maxPrice=${filter.maxPrice()})}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, flightsPage.totalPages - 1)}"
+                            th:classappend="${i == flightsPage.number} ? 'active'">
+                            <a class="page-link" th:href="@{/flights(page=${i}, departureCity=${filter.departureCity()}, arrivalCity=${filter.arrivalCity()}, maxPrice=${filter.maxPrice()})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${flightsPage.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/flights(page=${flightsPage.number + 1}, departureCity=${filter.departureCity()}, arrivalCity=${filter.arrivalCity()}, maxPrice=${filter.maxPrice()})}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script>
+        function flightsApp() {
+            return {
+                async addFlightToCart(flightId) {
+                    try {
+                        const res = await fetch('/api/v1/cart/items', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ flightId: flightId, quantity: 1, itemType: 'FLIGHT' })
+                        });
+                        if (res.status === 401) {
+                            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                            return;
+                        }
+                        if (res.ok) {
+                            alert('Авиабилет добавлен в корзину!');
+                            window.location.href = '/cart';
+                        } else {
+                            const err = await res.json();
+                            alert(err.detail || 'Не удалось добавить авиабилет');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

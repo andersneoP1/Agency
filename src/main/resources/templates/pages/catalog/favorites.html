@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Избранное'})}">
+    <title>Избранные туры | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" x-data="favoritesPage()">
+
+    <!-- Header Navigation -->
+    <header th:replace="~{fragments/navbar :: navbar('favorites')}"></header>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 py-4">
+        <div class="container">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Главная</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Избранные туры</li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 fw-bold text-dark mb-1"><i class="bi bi-heart-fill text-danger me-2"></i>Моё избранное</h1>
+                    <p class="text-muted mb-0">Сохранённые туры для вашего следующего отпуска</p>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${favoritesPage.empty}" class="card border-0 shadow-sm rounded-4 p-5 text-center my-4">
+                <i class="bi bi-heartbreak display-3 text-muted mb-3"></i>
+                <h3 class="fw-bold">В избранном пока ничего нет</h3>
+                <p class="text-muted">Нажимайте на сердечко в каталоге, чтобы сохранить понравившиеся предложения и вернуться к ним позже.</p>
+                <div>
+                    <a th:href="@{/tours}" class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-compass me-1"></i> Перейти к поиску туров
+                    </a>
+                </div>
+            </div>
+
+            <!-- Favorites Grid -->
+            <div th:unless="${favoritesPage.empty}" class="row g-4">
+                <div class="col-md-4" th:each="tour : ${favoritesPage.content}">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
+                        <button class="btn btn-sm btn-danger rounded-circle position-absolute top-0 end-0 m-3 shadow-sm"
+                                @click="removeFavorite([[${tour.id()}]])" title="Удалить из избранного" style="z-index: 2;">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+
+                        <a th:href="@{'/tours/' + ${tour.id()}}" class="text-decoration-none">
+                            <div style="height: 200px; overflow: hidden;">
+                                <img th:src="${tour.imageUrl() ?: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500'}" 
+                                     class="w-100 h-100 object-fit-cover" th:alt="${tour.title()}">
+                            </div>
+                        </a>
+
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="d-flex justify-content-between text-muted small mb-2">
+                                <span th:text="${tour.country() + ', ' + tour.city()}">Страна</span>
+                                <span th:text="${tour.durationDays() + ' дн.'}">7 дн.</span>
+                            </div>
+                            <h5 class="fw-bold mb-2">
+                                <a th:href="@{'/tours/' + ${tour.id()}}" class="text-dark text-decoration-none" th:text="${tour.title()}">Тур</a>
+                            </h5>
+                            <p class="small text-muted flex-grow-1 line-clamp-2" th:text="${tour.description()}">Описание</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+                                <span class="h5 fw-bold text-primary mb-0" 
+                                      th:text="${#numbers.formatDecimal(tour.price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</span>
+                                <a th:href="@{'/tours/' + ${tour.id()}}" class="btn btn-warning btn-sm fw-bold rounded-pill px-3">
+                                    Подробнее
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${favoritesPage.totalPages > 1}" class="d-flex justify-content-center mt-5">
+                <nav>
+                    <ul class="pagination pagination-rounded shadow-sm">
+                        <li class="page-item" th:classappend="${favoritesPage.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{/favorites(page=${favoritesPage.number - 1})}"><i class="bi bi-chevron-left"></i></a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, favoritesPage.totalPages - 1)}"
+                            th:classappend="${i == favoritesPage.number} ? 'active'">
+                            <a class="page-link" th:href="@{/favorites(page=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${favoritesPage.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/favorites(page=${favoritesPage.number + 1})}"><i class="bi bi-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script>
+        function favoritesPage() {
+            return {
+                async removeFavorite(tourId) {
+                    if (!confirm('Удалить этот тур из избранного?')) return;
+                    try {
+                        const res = await fetch('/api/v1/favorites/tours/' + tourId, { method: 'DELETE' });
+                        if (res.ok) {
+                            window.location.reload();
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

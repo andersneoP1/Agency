@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Детали тура'})}">
+    <title>Детали тура | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" x-data="tourDetail([[${tour.id()}]], [[${isFavorite}]])">
+
+    <!-- Header Navigation -->
+    <header th:replace="~{fragments/navbar :: navbar('tours')}"></header>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 py-4">
+        <div class="container">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Главная</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/tours}" class="text-decoration-none">Каталог туров</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" th:text="${tour.title()}">Тур</li>
+                </ol>
+            </nav>
+
+            <!-- Hero Image & Title Section -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="position-relative" style="max-height: 480px; overflow: hidden;">
+                    <img th:src="${tour.imageUrl() ?: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200'}" 
+                         class="w-100 object-fit-cover" style="height: 420px;"
+                         th:alt="${tour.title()}">
+                    <div class="position-absolute top-0 start-0 m-4 d-flex gap-2">
+                        <span th:if="${tour.hotOffer()}" class="badge bg-danger px-3 py-2 rounded-pill fw-bold shadow">
+                            <i class="bi bi-fire me-1"></i> Горящее предложение
+                        </span>
+                        <span class="badge bg-dark bg-opacity-75 px-3 py-2 rounded-pill fw-bold text-white shadow">
+                            <i class="bi bi-geo-alt-fill text-warning me-1"></i> <span th:text="${tour.country() + ', ' + tour.city()}">Турция</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Main Info Column -->
+                <div class="col-lg-8">
+                    <!-- Title & Overview Card -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                        <h1 class="h2 fw-bold text-dark mb-3" th:text="${tour.title()}">Название тура</h1>
+                        
+                        <!-- Quick Key Stats -->
+                        <div class="row g-3 text-center py-3 bg-light rounded-4 mb-4">
+                            <div class="col-sm-3 col-6">
+                                <span class="text-muted small d-block">Длительность</span>
+                                <strong class="fs-5 text-dark"><i class="bi bi-clock me-1 text-primary"></i><span th:text="${tour.durationDays()} + ' дней'">7 дней</span></strong>
+                            </div>
+                            <div class="col-sm-3 col-6">
+                                <span class="text-muted small d-block">Даты отдыха</span>
+                                <strong class="fs-6 text-dark"><i class="bi bi-calendar3 me-1 text-primary"></i><span th:text="${#temporals.format(tour.startDate(), 'dd.MM')} + ' - ' + ${#temporals.format(tour.endDate(), 'dd.MM')}">15.06 - 22.06</span></strong>
+                            </div>
+                            <div class="col-sm-3 col-6">
+                                <span class="text-muted small d-block">Отель</span>
+                                <strong class="fs-6 text-dark" th:if="${tour.hotel() != null}">
+                                    <span th:text="${tour.hotel().stars()} + '★'">5★</span>
+                                </strong>
+                            </div>
+                            <div class="col-sm-3 col-6">
+                                <span class="text-muted small d-block">Свободных мест</span>
+                                <strong class="fs-5 text-success"><i class="bi bi-people-fill me-1"></i><span th:text="${tour.availableSlots()}">12</span></strong>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <h4 class="fw-bold mb-3">О туре</h4>
+                        <p class="text-secondary lead fs-6 lh-base mb-4" th:text="${tour.description()}">
+                            Подробное описание программы тура и всех условий путешествия.
+                        </p>
+
+                        <!-- Included Services -->
+                        <h4 class="fw-bold mb-3"><i class="bi bi-check2-circle text-success me-2"></i>Что входит в стоимость</h4>
+                        <div class="p-3 bg-light rounded-4 mb-4">
+                            <p class="mb-0 text-dark fw-medium" th:text="${tour.includedServices()}">
+                                Прямой авиаперелет, Проживание в отеле, Питание Все Включено, Медицинская страховка.
+                            </p>
+                        </div>
+
+                        <!-- Hotel Details -->
+                        <div th:if="${tour.hotel() != null}" class="card border border-light-subtle rounded-4 p-4 mt-2">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h4 class="fw-bold mb-1" th:text="${tour.hotel().name()}">Отель</h4>
+                                    <p class="text-muted small mb-0">
+                                        <i class="bi bi-geo-alt me-1 text-danger"></i>
+                                        <span th:text="${tour.hotel().address() ?: (tour.hotel().city() + ', ' + tour.hotel().country())}">Адрес</span>
+                                    </p>
+                                </div>
+                                <div class="text-warning fs-5">
+                                    <span th:each="i : ${#numbers.sequence(1, tour.hotel().stars())}">★</span>
+                                </div>
+                            </div>
+                            <p class="text-secondary small mb-3" th:text="${tour.hotel().description()}">Описание отеля</p>
+                            <div th:if="${tour.hotel().amenities() != null}">
+                                <strong class="small text-dark d-block mb-2">Удобства отеля:</strong>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-secondary bg-opacity-10 text-dark border px-3 py-2 rounded-pill small" 
+                                          th:each="amenity : ${#strings.arraySplit(tour.hotel().amenities(), ',')}"
+                                          th:text="${#strings.trim(amenity)}">
+                                        Бассейн
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reviews Section -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="fw-bold mb-0"><i class="bi bi-chat-left-quote text-warning me-2"></i>Отзывы путешественников</h4>
+                            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-bold">4.9 / 5.0 ★</span>
+                        </div>
+                        <p class="text-muted small mb-4">Отзывы туристов, которые уже посетили данный тур.</p>
+                        
+                        <div class="alert alert-light border rounded-3 p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong class="text-dark">Иван П.</strong>
+                                <span class="text-warning small">★★★★★</span>
+                            </div>
+                            <p class="text-muted small mb-1">Потрясающая поездка! Отель выше всяких похвал, сервис на высоте. Организация от Native Travel безупречная.</p>
+                            <small class="text-secondary opacity-75">10 апреля 2026</small>
+                        </div>
+
+                        <div class="alert alert-light border rounded-3 p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong class="text-dark">Анна С.</strong>
+                                <span class="text-warning small">★★★★★</span>
+                            </div>
+                            <p class="text-muted small mb-1">Очень понравился пляж и спа-комплекс. Обязательно полетим снова через ваше агентство!</p>
+                            <small class="text-secondary opacity-75">2 мая 2026</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking / Action Sidebar -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 80px;">
+                        <span class="text-muted small d-block mb-1">Цена тура</span>
+                        <div class="d-flex align-items-baseline gap-2 mb-3">
+                            <h2 class="display-6 fw-extrabold text-primary mb-0" 
+                                th:text="${#numbers.formatDecimal(tour.price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</h2>
+                            <small class="text-muted">/ за 2 чел.</small>
+                        </div>
+
+                        <ul class="list-unstyled small text-muted mb-4 border-top border-bottom py-3">
+                            <li class="mb-2 d-flex align-items-center">
+                                <i class="bi bi-shield-check text-success fs-5 me-2"></i>
+                                <span>Гарантия лучшей цены без скрытых комиссий</span>
+                            </li>
+                            <li class="mb-2 d-flex align-items-center">
+                                <i class="bi bi-clock-history text-primary fs-5 me-2"></i>
+                                <span>Мгновенное подтверждение и электронный ваучер</span>
+                            </li>
+                            <li class="d-flex align-items-center">
+                                <i class="bi bi-qr-code text-dark fs-5 me-2"></i>
+                                <span>Персональный QR-код для регистрации</span>
+                            </li>
+                        </ul>
+
+                        <!-- CTA Actions -->
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-warning btn-lg fw-bold rounded-pill shadow-sm"
+                                    @click="addToCart([[${tour.id()}]], 'TOUR')">
+                                <i class="bi bi-cart-plus me-2"></i>Добавить в корзину
+                            </button>
+                            <a th:href="@{'/booking?tourId=' + ${tour.id()}}" class="btn btn-primary btn-lg fw-bold rounded-pill shadow-sm">
+                                <i class="bi bi-lightning-charge me-2"></i>Забронировать
+                            </a>
+                            <div class="d-flex gap-2 mt-2">
+                                <button class="btn btn-outline-danger w-50 rounded-pill fw-semibold"
+                                        @click="toggleFavorite()">
+                                    <i class="bi bi-heart me-1" :class="isFav ? 'bi-heart-fill' : 'bi-heart'"></i>
+                                    <span x-text="isFav ? 'В избранном' : 'В избранное'"></span>
+                                </button>
+                                <button class="btn btn-outline-secondary w-50 rounded-pill fw-semibold"
+                                        @click="addToCompare([[${tour.id()}]])">
+                                    <i class="bi bi-arrow-left-right me-1"></i>Сравнить
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Need Help -->
+                        <div class="mt-4 p-3 bg-light rounded-4 text-center">
+                            <small class="text-muted d-block mb-1">Нужна помощь с выбором?</small>
+                            <a href="#supportChat" onclick="openChat()" class="fw-bold text-primary text-decoration-none small">
+                                <i class="bi bi-chat-dots-fill me-1"></i>Написать консультанту
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script>
+        function tourDetail(tourId, initialFav) {
+            return {
+                tourId: tourId,
+                isFav: initialFav,
+                async addToCart(id, type) {
+                    try {
+                        const res = await fetch('/api/v1/cart/items', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ tourId: id, quantity: 1, itemType: type })
+                        });
+                        if (res.status === 401) {
+                            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                            return;
+                        }
+                        if (res.ok) {
+                            alert('Тур успешно добавлен в корзину!');
+                            window.location.href = '/cart';
+                        } else {
+                            const err = await res.json();
+                            alert(err.detail || 'Не удалось добавить в корзину');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+                async toggleFavorite() {
+                    try {
+                        const method = this.isFav ? 'DELETE' : 'POST';
+                        const res = await fetch('/api/v1/favorites/tours/' + this.tourId, { method: method });
+                        if (res.status === 401) {
+                            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                            return;
+                        }
+                        if (res.ok) {
+                            this.isFav = !this.isFav;
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+                addToCompare(id) {
+                    let list = JSON.parse(localStorage.getItem('nt_compare_tours') || '[]');
+                    if (!list.includes(id)) {
+                        if (list.length >= 4) {
+                            alert('Можно выбрать не более 4 туров для сравнения');
+                            return;
+                        }
+                        list.push(id);
+                        localStorage.setItem('nt_compare_tours', JSON.stringify(list));
+                    }
+                    window.location.href = '/compare?ids=' + list.join(',');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

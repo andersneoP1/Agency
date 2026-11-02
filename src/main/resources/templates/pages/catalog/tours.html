@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Каталог туров'})}">
+    <title>Каталог туров | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" x-data="tourCatalog()">
+
+    <!-- Header Navigation -->
+    <header th:replace="~{fragments/navbar :: navbar('tours')}"></header>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 py-4">
+        <div class="container">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Главная</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Каталог туров</li>
+                </ol>
+            </nav>
+
+            <!-- Page Title -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h1 class="h2 fw-bold text-dark mb-1">
+                        <i class="bi bi-compass text-warning me-2"></i>Каталог путешествий
+                    </h1>
+                    <p class="text-muted mb-0">Найдено предложений: <strong th:text="${toursPage.totalElements}">0</strong></p>
+                </div>
+                
+                <!-- Floating Compare Toolbar -->
+                <div x-show="selectedForCompare.length > 0" x-cloak class="badge bg-primary text-white p-3 rounded-pill shadow-sm d-flex align-items-center gap-2">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Выбрано для сравнения: <strong x-text="selectedForCompare.length"></strong>/4</span>
+                    <button class="btn btn-sm btn-light rounded-pill fw-bold ms-2" @click="goToCompare()">
+                        Сравнить <i class="bi bi-arrow-right"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-light rounded-circle" @click="selectedForCompare = []" title="Сбросить">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Filters Sidebar -->
+                <aside class="col-lg-3">
+                    <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 80px;">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-sliders2 text-warning me-2"></i>Фильтры</span>
+                                <a th:href="@{/tours}" class="text-muted small text-decoration-none">Сброс</a>
+                            </h5>
+                            
+                            <form th:action="@{/tours}" method="get" id="filterForm">
+                                <!-- Country -->
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold text-secondary">Страна</label>
+                                    <select name="country" class="form-select" onchange="this.form.submit()">
+                                        <option value="">Все страны</option>
+                                        <option th:each="c : ${countries}" 
+                                                th:value="${c}" 
+                                                th:text="${c}" 
+                                                th:selected="${filter != null && filter.country() == c}"></option>
+                                    </select>
+                                </div>
+
+                                <!-- Min / Max Price -->
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold text-secondary">Цена (₽)</label>
+                                    <div class="input-group mb-2">
+                                        <input type="number" name="minPrice" class="form-control" placeholder="От"
+                                               th:value="${filter != null ? filter.minPrice() : ''}">
+                                        <input type="number" name="maxPrice" class="form-control" placeholder="До"
+                                               th:value="${filter != null ? filter.maxPrice() : ''}">
+                                    </div>
+                                </div>
+
+                                <!-- Stars -->
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold text-secondary">Звёздность отеля</label>
+                                    <select name="minStars" class="form-select" onchange="this.form.submit()">
+                                        <option value="">Любая категория</option>
+                                        <option value="5" th:selected="${filter != null && filter.stars() == 5}">5 звёзд ★★★★★</option>
+                                        <option value="4" th:selected="${filter != null && filter.stars() == 4}">4 звезды ★★★★</option>
+                                        <option value="3" th:selected="${filter != null && filter.stars() == 3}">3 звезды ★★★</option>
+                                    </select>
+                                </div>
+
+                                <!-- Hot Offers Only -->
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" name="hotOfferOnly" id="hotOfferSwitch" value="true"
+                                           th:checked="${filter != null && filter.hotOffer() != null && filter.hotOffer()}"
+                                           onchange="this.form.submit()">
+                                    <label class="form-check-label small fw-semibold" for="hotOfferSwitch">Только горящие туры</label>
+                                </div>
+
+                                <!-- Sort Order -->
+                                <div class="mb-4">
+                                    <label class="form-label small fw-semibold text-secondary">Сортировка</label>
+                                    <select name="sortBy" class="form-select" onchange="this.form.submit()">
+                                        <option value="price_asc" th:selected="${filter != null && filter.sortBy() == 'price_asc'}">Сначала дешевле</option>
+                                        <option value="price_desc" th:selected="${filter != null && filter.sortBy() == 'price_desc'}">Сначала дороже</option>
+                                        <option value="duration_desc" th:selected="${filter != null && filter.sortBy() == 'duration_desc'}">По длительности (макс)</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-warning w-100 fw-bold">Применить фильтр</button>
+                            </form>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Tour Cards Grid -->
+                <div class="col-lg-9">
+                    <!-- Empty State -->
+                    <div th:if="${toursPage.empty}" class="card border-0 shadow-sm rounded-4 p-5 text-center">
+                        <i class="bi bi-search display-3 text-muted mb-3"></i>
+                        <h4 class="fw-bold">Туры по вашему запросу не найдены</h4>
+                        <p class="text-muted">Попробуйте изменить критерии поиска или очистить фильтры.</p>
+                        <div>
+                            <a th:href="@{/tours}" class="btn btn-warning fw-bold px-4">Сбросить все фильтры</a>
+                        </div>
+                    </div>
+
+                    <!-- Cards -->
+                    <div th:unless="${toursPage.empty}" class="row g-4">
+                        <div class="col-md-6" th:each="tour : ${toursPage.content}">
+                            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden tour-card position-relative">
+                                <!-- Hot Offer Badge -->
+                                <span th:if="${tour.hotOffer()}" class="position-absolute top-0 start-0 m-3 badge bg-danger text-white rounded-pill px-3 py-2 fw-bold shadow-sm" style="z-index: 2;">
+                                    <i class="bi bi-fire me-1"></i> Горящий тур
+                                </span>
+
+                                <!-- Action Quick Buttons (Favorite & Compare) -->
+                                <div class="position-absolute top-0 end-0 m-3 d-flex gap-2" style="z-index: 2;">
+                                    <!-- Favorite Button -->
+                                    <button class="btn btn-sm btn-light rounded-circle shadow-sm" 
+                                            th:attr="data-tour-id=${tour.id()}"
+                                            @click="toggleFavorite($event, [[${tour.id()}]])"
+                                            title="В избранное">
+                                        <i class="bi bi-heart text-danger"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Image -->
+                                <a th:href="@{'/tours/' + ${tour.id()}}" class="text-decoration-none">
+                                    <div class="position-relative overflow-hidden" style="height: 220px;">
+                                        <img th:src="${tour.imageUrl() ?: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600'}" 
+                                             class="w-100 h-100 object-fit-cover transition-transform" 
+                                             th:alt="${tour.title()}">
+                                        <div class="position-absolute bottom-0 start-0 w-100 p-2 text-white bg-dark bg-opacity-50 small d-flex justify-content-between">
+                                            <span><i class="bi bi-geo-alt-fill text-warning me-1"></i><span th:text="${tour.country() + ', ' + tour.city()}">Страна</span></span>
+                                            <span><i class="bi bi-clock me-1"></i><span th:text="${tour.durationDays() + ' дн.'}">7 дн.</span></span>
+                                        </div>
+                                    </div>
+                                </a>
+
+                                <!-- Card Body -->
+                                <div class="card-body p-4 d-flex flex-column">
+                                    <!-- Hotel & Stars -->
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <small class="text-muted fw-semibold" th:if="${tour.hotel() != null}" th:text="${tour.hotel().name()}">Отель</small>
+                                        <div class="text-warning small" th:if="${tour.hotel() != null}">
+                                            <span th:each="i : ${#numbers.sequence(1, tour.hotel().stars())}">★</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Title -->
+                                    <h5 class="card-title fw-bold mb-2">
+                                        <a th:href="@{'/tours/' + ${tour.id()}}" class="text-dark text-decoration-none hover-primary" th:text="${tour.title()}">
+                                            Название тура
+                                        </a>
+                                    </h5>
+
+                                    <!-- Description preview -->
+                                    <p class="card-text text-muted small flex-grow-1 line-clamp-2" th:text="${tour.description()}">
+                                        Краткое описание тура и ключевых особенностей программы отдыха.
+                                    </p>
+
+                                    <!-- Dates & Amenities -->
+                                    <div class="bg-light p-2 rounded-3 small text-secondary mb-3">
+                                        <i class="bi bi-calendar3 me-1 text-primary"></i> 
+                                        <span th:text="${#temporals.format(tour.startDate(), 'dd.MM')} + ' — ' + ${#temporals.format(tour.endDate(), 'dd.MM.yyyy')}">Даты</span>
+                                    </div>
+
+                                    <!-- Price & Booking Footer -->
+                                    <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-auto">
+                                        <div>
+                                            <span class="text-muted small d-block">Стоимость за двоих</span>
+                                            <span class="h4 fw-extrabold text-primary mb-0" th:text="${#numbers.formatDecimal(tour.price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</span>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <!-- Compare Checkbox -->
+                                            <div class="form-check d-flex align-items-center" title="Добавить к сравнению">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       :checked="selectedForCompare.includes([[${tour.id()}]])"
+                                                       @change="toggleCompare([[${tour.id()}]])"
+                                                       id="compareCheck-[[${tour.id()}]]">
+                                                <label class="form-check-label ms-1 small text-muted" for="compareCheck-[[${tour.id()}]]">Сравнить</label>
+                                            </div>
+                                            <!-- Detail Button -->
+                                            <a th:href="@{'/tours/' + ${tour.id()}}" class="btn btn-warning fw-bold btn-sm px-3 rounded-pill shadow-sm">
+                                                Детали
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div th:if="${toursPage.totalPages > 1}" class="d-flex justify-content-center mt-5">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination pagination-rounded shadow-sm">
+                                <li class="page-item" th:classappend="${toursPage.first} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/tours(page=${toursPage.number - 1}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:each="i : ${#numbers.sequence(0, toursPage.totalPages - 1)}"
+                                    th:classappend="${i == toursPage.number} ? 'active'">
+                                    <a class="page-link" th:href="@{/tours(page=${i}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}"
+                                       th:text="${i + 1}">1</a>
+                                </li>
+                                <li class="page-item" th:classappend="${toursPage.last} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/tours(page=${toursPage.number + 1}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script>
+        function tourCatalog() {
+            return {
+                selectedForCompare: JSON.parse(localStorage.getItem('nt_compare_tours') || '[]'),
+                toggleCompare(id) {
+                    if (this.selectedForCompare.includes(id)) {
+                        this.selectedForCompare = this.selectedForCompare.filter(x => x !== id);
+                    } else {
+                        if (this.selectedForCompare.length >= 4) {
+                            alert('Можно выбрать не более 4 туров для сравнения');
+                            return;
+                        }
+                        this.selectedForCompare.push(id);
+                    }
+                    localStorage.setItem('nt_compare_tours', JSON.stringify(this.selectedForCompare));
+                },
+                goToCompare() {
+                    if (this.selectedForCompare.length === 0) return;
+                    window.location.href = '/compare?ids=' + this.selectedForCompare.join(',');
+                },
+                async toggleFavorite(event, tourId) {
+                    const btn = event.currentTarget;
+                    try {
+                        const res = await fetch('/api/v1/favorites/tours/' + tourId, { method: 'POST' });
+                        if (res.status === 401) {
+                            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                            return;
+                        }
+                        if (res.ok) {
+                            btn.classList.add('btn-danger', 'text-white');
+                            btn.classList.remove('btn-light');
+                            alert('Тур добавлен в избранное!');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

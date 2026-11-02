@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head(${pageTitle ?: 'Сравнение туров'})}">
+    <title>Сравнение туров | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light" x-data="comparePage()">
+
+    <!-- Header Navigation -->
+    <header th:replace="~{fragments/navbar :: navbar('compare')}"></header>
+
+    <!-- Main Container -->
+    <main class="flex-shrink-0 py-4">
+        <div class="container">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Главная</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/tours}" class="text-decoration-none">Каталог</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Сравнение предложений</li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 fw-bold text-dark mb-1"><i class="bi bi-arrow-left-right text-primary me-2"></i>Сравнение туров</h1>
+                    <p class="text-muted mb-0">Сопоставление условий, отелей и цен (до 4 туров)</p>
+                </div>
+                <div th:unless="${#lists.isEmpty(tours)}">
+                    <button class="btn btn-outline-danger btn-sm rounded-pill" @click="clearAllCompare()">
+                        <i class="bi bi-trash3 me-1"></i> Очистить сравнение
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(tours)}" class="card border-0 shadow-sm rounded-4 p-5 text-center my-4">
+                <i class="bi bi-card-checklist display-3 text-muted mb-3"></i>
+                <h3 class="fw-bold">Нет выбранных туров для сравнения</h3>
+                <p class="text-muted">Перейдите в каталог туров и отметьте чекбоксы «Сравнить» на карточках понравившихся предложений.</p>
+                <div>
+                    <a th:href="@{/tours}" class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-search me-1"></i> Перейти в каталог туров
+                    </a>
+                </div>
+            </div>
+
+            <!-- Comparison Table Matrix -->
+            <div th:unless="${#lists.isEmpty(tours)}" class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 20%;" class="p-3 text-secondary">Параметр</th>
+                                <th th:each="tour : ${tours}" style="width: 20%;" class="p-3 text-center position-relative">
+                                    <button class="btn btn-sm btn-outline-secondary rounded-circle position-absolute top-0 end-0 m-2"
+                                            @click="removeCompare([[${tour.id()}]])" title="Убрать из сравнения">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                    <img th:src="${tour.imageUrl() ?: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300'}" 
+                                         class="rounded-3 mb-2 shadow-sm object-fit-cover" style="height: 120px; width: 100%;"
+                                         th:alt="${tour.title()}">
+                                    <h6 class="fw-bold mb-1">
+                                        <a th:href="@{'/tours/' + ${tour.id()}}" class="text-dark text-decoration-none" th:text="${tour.title()}">Тур</a>
+                                    </h6>
+                                    <span class="h5 fw-bold text-primary d-block mb-2" 
+                                          th:text="${#numbers.formatDecimal(tour.price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</span>
+                                    <a th:href="@{'/booking?tourId=' + ${tour.id()}}" class="btn btn-warning btn-sm w-100 fw-bold rounded-pill">
+                                        Забронировать
+                                    </a>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Country & City -->
+                            <tr>
+                                <td class="fw-semibold text-muted p-3"><i class="bi bi-geo-alt text-danger me-2"></i>Страна / Курорт</td>
+                                <td th:each="tour : ${tours}" class="p-3 text-center" th:text="${tour.country() + ', ' + tour.city()}">
+                                    Турция, Белек
+                                </td>
+                            </tr>
+                            <!-- Hotel Name -->
+                            <tr>
+                                <td class="fw-semibold text-muted p-3"><i class="bi bi-building text-primary me-2"></i>Отель</td>
+                                <td th:each="tour : ${tours}" class="p-3 text-center fw-medium" 
+                                    th:text="${tour.hotel() != null ? tour.hotel().name() : '—'}">
+                                    Rixos
+                                </td>
+                            </tr>
+                            <!-- Hotel Stars -->
+                            <tr>
+                                <td class="fw-semibold text-muted p-3"><i class="bi bi-star-fill text-warning me-2"></i>Категория отеля</td>
+                                <td th:each="tour : ${tours}" class="p-3 text-center">
+                                    <div class="text-warning" th:if="${tour.hotel() != null}">
+                                        <span th:each="i : ${#numbers.sequence(1, tour.hotel().stars())}">★</span>
+                                    </div>
+                                    <span th:unless="${tour.hotel() != null}">—</span>
+                                </td>
+                            </tr>
+                            <!-- Duration -->
+                            <tr>
+                                <td class="fw-semibold text-muted p-3"><i class="bi bi-clock-history text-info me-2"></i>Длительность</td>
+                                <td th:each="tour : ${tours}" class="p-3 text-center fw-bold" th:text="${tour.durationDays() + ' дней'}">
+                                    7 дней
+                                </td>
+                            </tr>
+                            <!-- Dates -->
+                            <tr>
+                                <td class="fw-semibold text-muted p-3"><i class="bi bi-calendar-event text-secondary me-2"></i>Даты поездки</td>
+                                <td th:each="tour : ${tours}" class="p-3 text-center" 
+                                    th:text="${#temporals.format(tour.startDate(), 'dd.MM')} + ' — ' + ${#temporals.format(tour.endDate(), 'dd.MM.yyyy')}">
+                                    15.06 - 22.06.2026
+                                </td>
+                            </tr>
+                            <!-- Included Services -->
+                            <tr>
+                                <td class="fw-semibold text-muted p-3"><i class="bi bi-check2-circle text-success me-2"></i>Что включено</td>
+                                <td th:each="tour : ${tours}" class="p-3 small text-secondary" th:text="${tour.includedServices()}">
+                                    Перелет, Отель, Питание
+                                </td>
+                            </tr>
+                            <!-- Available Slots -->
+                            <tr>
+                                <td class="fw-semibold text-muted p-3"><i class="bi bi-person-check text-success me-2"></i>Свободные места</td>
+                                <td th:each="tour : ${tours}" class="p-3 text-center">
+                                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold" 
+                                          th:text="${tour.availableSlots()} + ' мест'">12 мест</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script>
+        function comparePage() {
+            return {
+                removeCompare(id) {
+                    let list = JSON.parse(localStorage.getItem('nt_compare_tours') || '[]');
+                    list = list.filter(x => x !== id);
+                    localStorage.setItem('nt_compare_tours', JSON.stringify(list));
+                    if (list.length > 0) {
+                        window.location.href = '/compare?ids=' + list.join(',');
+                    } else {
+                        window.location.href = '/compare';
+                    }
+                },
+                clearAllCompare() {
+                    localStorage.removeItem('nt_compare_tours');
+                    window.location.href = '/compare';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
