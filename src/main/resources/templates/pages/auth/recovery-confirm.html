@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head('Подтверждение сброса пароля')}">
+    <title>Новый пароль | Native Travel</title>
+</head>
+<body class="d-flex flex-column h-100 bg-light font-sans">
+
+    <!-- Header Navigation -->
+    <header th:replace="~{fragments/navbar :: navbar('recovery')}"></header>
+
+    <!-- Main Content Container -->
+    <main class="flex-shrink-0 my-auto py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-7 col-lg-5 col-xl-4">
+                    <div class="card border-0 shadow-lg rounded-4 p-4 p-sm-5"
+                         x-data="{
+                             email: '[[${email ?: ''}]]',
+                             code: '',
+                             newPassword: '',
+                             confirmPassword: '',
+                             errorMessage: '',
+                             loading: false,
+                             async submitConfirm() {
+                                 this.errorMessage = '';
+                                 if (this.newPassword !== this.confirmPassword) {
+                                     this.errorMessage = 'Пароли не совпадают';
+                                     return;
+                                 }
+                                 this.loading = true;
+                                 try {
+                                     const res = await fetch('/api/v1/auth/recovery/confirm', {
+                                         method: 'POST',
+                                         headers: { 'Content-Type': 'application/json' },
+                                         body: JSON.stringify({
+                                             email: this.email,
+                                             code: this.code,
+                                             newPassword: this.newPassword
+                                         })
+                                     });
+                                     if (res.ok) {
+                                         window.location.href = '/login?reset=true';
+                                     } else {
+                                         const data = await res.json();
+                                         this.errorMessage = data.detail || 'Неверный или просроченный код';
+                                     }
+                                 } catch (err) {
+                                     this.errorMessage = 'Ошибка сети. Попробуйте позже.';
+                                 } finally {
+                                     this.loading = false;
+                                 }
+                             }
+                         }">
+
+                        <div class="text-center mb-4">
+                            <i class="bi bi-shield-lock text-warning fs-1"></i>
+                            <h3 class="fw-bold mt-2">Новый пароль</h3>
+                            <p class="text-muted small">Введите 6-значный код из письма и новый пароль</p>
+                        </div>
+
+                        <div x-show="errorMessage" x-text="errorMessage" class="alert alert-danger small py-2" role="alert" style="display: none;"></div>
+
+                        <form @submit.prevent="submitConfirm()">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Email</label>
+                                <input type="email" x-model="email" class="form-control" placeholder="name@example.com" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">6-значный код подтверждения</label>
+                                <input type="text" x-model="code" maxlength="6" pattern="[0-9]{6}"
+                                       class="form-control text-center fs-4 letter-spacing-2 fw-bold" placeholder="000000" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Новый пароль</label>
+                                <input type="password" x-model="newPassword" class="form-control" placeholder="Минимум 8 знаков" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small fw-semibold">Повторите новый пароль</label>
+                                <input type="password" x-model="confirmPassword" class="form-control" placeholder="Повторите пароль" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning w-100 fw-bold py-2 shadow-sm" :disabled="loading">
+                                <span x-show="!loading"><i class="bi bi-check2-circle me-1"></i> Сохранить пароль</span>
+                                <span x-show="loading" style="display: none;"><span class="spinner-border spinner-border-sm me-1"></span> Сохранение...</span>
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-4 pt-3 border-top">
+                            <a th:href="@{/login}" class="small fw-semibold text-muted text-decoration-none">
+                                <i class="bi bi-arrow-left me-1"></i> Вернуться ко входу
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Chat Widget -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

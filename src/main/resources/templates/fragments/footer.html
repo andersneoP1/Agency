@@ -48,7 +48,7 @@
             <div class="col-lg-4 col-md-6">
                 <h6 class="text-white fw-bold mb-3" th:text="#{footer.subscribe}">Подписка на горящие туры</h6>
                 <p class="text-secondary small">Получайте эксклюзивные скидки и предложения первыми.</p>
-                <form th:action="@{/api/v1/subscriptions/hot-offers}" method="post"
+                <form action="/api/v1/subscriptions/hot-offers" method="post"
                       hx-post="/api/v1/subscriptions/hot-offers" hx-swap="outerHTML" class="d-flex gap-2">
                     <input type="email" name="email" class="form-control form-control-sm bg-dark text-white border-secondary"
                            th:placeholder="#{footer.subscribe.placeholder}" placeholder="Введите ваш email" required>
