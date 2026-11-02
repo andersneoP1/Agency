@@ -48,5 +48,6 @@ app:
   upload:
     dir: ${UPLOAD_DIR:uploads}
   telegram:
+    enabled: ${TELEGRAM_BOT_ENABLED:false}
     bot-username: ${TELEGRAM_BOT_USERNAME:NativeTravelSupportBot}
     bot-token: ${TELEGRAM_BOT_TOKEN:mock-token}

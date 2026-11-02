@@ -25,6 +25,8 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
      */
     Page<Tour> findByHotOfferTrue(Pageable pageable);
 
+    List<Tour> findByHotOfferTrue();
+
     /**
      * Получение списка всех уникальных стран из базы.
      *

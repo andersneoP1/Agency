@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout('О компании | Native Travel', 'about', ~{::main})}">
+<head>
+    <title th:text="#{about.title} + ' | Native Travel'">О компании Native Travel</title>
+</head>
+<body>
+<main class="py-5 bg-light">
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="row align-items-center mb-5 bg-white rounded-4 p-4 p-lg-5 shadow-sm">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-semibold mb-3">Native Travel</span>
+                <h1 class="display-5 fw-bold mb-3" th:text="#{about.heading}">Мы открываем мир для каждого путешественника</h1>
+                <p class="lead text-muted mb-4" th:text="#{about.subtitle}">
+                    Native Travel — это современная экосистема путешествий, созданная для тех, кто ценит комфорт, прозрачность и первоклассный сервис.
+                </p>
+                <div class="d-flex gap-3">
+                    <a th:href="@{/tours}" class="btn btn-warning btn-lg fw-bold px-4">
+                        <i class="bi bi-compass me-2"></i>Смотреть туры
+                    </a>
+                    <a th:href="@{/faq}" class="btn btn-outline-secondary btn-lg px-4">
+                        <i class="bi bi-question-circle me-2"></i>FAQ
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1000&q=80"
+                     class="img-fluid rounded-4 shadow" alt="Travel the world">
+            </div>
+        </div>
+
+        <!-- Stats Counter -->
+        <div class="row g-4 mb-5 text-center">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                    <div class="display-4 fw-bold text-warning mb-2">500+</div>
+                    <h5 class="fw-bold mb-1" th:text="#{about.stats.tours}">500+ туров по всему миру</h5>
+                    <p class="text-muted small mb-0">Тщательно проверенные маршруты и контракты с ведущими отелями</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                    <div class="display-4 fw-bold text-success mb-2">50 000+</div>
+                    <h5 class="fw-bold mb-1" th:text="#{about.stats.clients}">50 000+ довольных туристов</h5>
+                    <p class="text-muted small mb-0">98% наших путешественников рекомендуют Native Travel друзьям</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                    <div class="display-4 fw-bold text-primary mb-2">10</div>
+                    <h5 class="fw-bold mb-1" th:text="#{about.stats.experience}">10 лет безупречной работы</h5>
+                    <p class="text-muted small mb-0">Опыт, надежность и признание на туристическом рынке</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mission & Guarantees -->
+        <div class="row g-4 mb-5">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 h-100 bg-white">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-warning bg-opacity-25 text-warning rounded-circle p-3 me-3">
+                            <i class="bi bi-award fs-3"></i>
+                        </div>
+                        <h3 class="fw-bold mb-0" th:text="#{about.mission.title}">Наша миссия</h3>
+                    </div>
+                    <p class="text-muted" th:text="#{about.mission.desc}">
+                        Делать организацию путешествий простой, быстрой и вдохновляющей. Мы объединяем лучшие мировые отели, проверенные авиалинии и персональную заботу о каждом клиенте.
+                    </p>
+                    <ul class="list-unstyled text-muted mt-3">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Индивидуальный подбор предложений по вашим предпочтениям</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Честные цены без скрытых комиссий и сборов</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Моментальное бронирование авиабилетов и номеров</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 h-100 bg-white">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success bg-opacity-25 text-success rounded-circle p-3 me-3">
+                            <i class="bi bi-shield-check fs-3"></i>
+                        </div>
+                        <h3 class="fw-bold mb-0" th:text="#{about.guarantees.title}">Наши гарантии</h3>
+                    </div>
+                    <p class="text-muted" th:text="#{about.guarantees.desc}">
+                        Мгновенное подтверждение бронирования, защищенные платежи, автоматическая генерация электронных ваучеров с QR-кодом и круглосуточная поддержка 24/7.
+                    </p>
+                    <ul class="list-unstyled text-muted mt-3">
+                        <li class="mb-2"><i class="bi bi-qr-code text-warning me-2"></i>Электронный PDF-ваучер с защищенным QR-кодом для отеля</li>
+                        <li class="mb-2"><i class="bi bi-credit-card text-warning me-2"></i>Безопасный эквайринг, СБП, карты и криптовалюта</li>
+                        <li class="mb-2"><i class="bi bi-headset text-warning me-2"></i>Поддержка в WebSocket-чате и официальном Telegram-боте</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact & Offices -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white">
+            <h3 class="fw-bold mb-4">Наши контакты и офис</h3>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <h5 class="fw-bold"><i class="bi bi-geo-alt text-danger me-2"></i>Главный офис</h5>
+                    <p class="text-muted mb-0">г. Москва, Пресненская наб., 12<br>Башня «Федерация», этаж 42</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="fw-bold"><i class="bi bi-telephone text-primary me-2"></i>Телефон и поддержка</h5>
+                    <p class="text-muted mb-0">8 (800) 555-35-35 (Бесплатно по РФ)<br>support@nativetravel.local</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="fw-bold"><i class="bi bi-clock text-warning me-2"></i>Время работы</h5>
+                    <p class="text-muted mb-0">Офис: Пн–Пт с 09:00 до 20:00<br>Онлайн-поддержка: 24/7 без выходных</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

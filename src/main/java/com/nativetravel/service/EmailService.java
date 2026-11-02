@@ -22,4 +22,12 @@ public interface EmailService {
      * @param pdfBytes байты PDF-ваучера
      */
     void sendBookingConfirmation(String toEmail, String bookingNumber, byte[] qrBytes, byte[] pdfBytes);
+
+    /**
+     * Отправляет рассылку горящих предложений.
+     *
+     * @param toEmail адрес подписчика
+     * @param content текст рассылки
+     */
+    void sendHotOffersNewsletter(String toEmail, String content);
 }
