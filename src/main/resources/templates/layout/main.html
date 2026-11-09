@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:fragment="layout(pageTitle, activePage, content)"
-      lang="ru" class="h-100">
+      th:attr="lang=${#locale.language}" lang="ru" class="h-100">
 <head th:replace="~{fragments/head :: head(${pageTitle})}">
     <title>Native Travel</title>
 </head>

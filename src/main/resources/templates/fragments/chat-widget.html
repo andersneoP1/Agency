@@ -10,6 +10,34 @@
          ],
          input: '',
          isSending: false,
+         operatorTimer: null,
+         operatorTypingTimer: null,
+         scheduleOperatorBusyReply() {
+             if (this.operatorTimer) clearTimeout(this.operatorTimer);
+             if (this.operatorTypingTimer) clearTimeout(this.operatorTypingTimer);
+
+             this.operatorTypingTimer = setTimeout(() => {
+                 this.isSending = true;
+                 this.$nextTick(() => { this.scrollToBottom(); });
+             }, 3500);
+
+             this.operatorTimer = setTimeout(async () => {
+                 this.isSending = false;
+                 const busyText = 'Все операторы в данный момент заняты, попробуйте позднее...';
+                 this.messages.push({ sender: 'bot', text: busyText });
+                 this.$nextTick(() => { this.scrollToBottom(); });
+
+                 try {
+                     await fetch('/api/v1/support/operator-busy', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ sessionId: this.sessionId, message: busyText })
+                     });
+                 } catch (e) {
+                     // non-blocking
+                 }
+             }, 5000);
+         },
          async sendMessage() {
              const text = this.input.trim();
              if (!text || this.isSending) return;
@@ -19,19 +47,25 @@
              this.$nextTick(() => { this.scrollToBottom(); });
 
              try {
-                 const res = await fetch('/api/v1/support/messages', {
-                     method: 'POST',
-                     headers: { 'Content-Type': 'application/json' },
-                     body: JSON.stringify({ sessionId: this.sessionId, message: text })
-                 });
+                 const [res] = await Promise.all([
+                     fetch('/api/v1/support/messages', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ sessionId: this.sessionId, message: text })
+                     }),
+                     new Promise(r => setTimeout(r, 600))
+                 ]);
                  if (res.ok) {
                      const data = await res.json();
                      this.messages.push({ sender: 'bot', text: data.message });
+                     if (data.escalated || /оператор|человек|менеджер|специалист|консультант/i.test(text)) {
+                         this.scheduleOperatorBusyReply();
+                     }
                  } else {
                      this.messages.push({ sender: 'bot', text: 'Извините, возникла задержка соединения. Вы можете задать вопрос в Telegram или повторить позже.' });
                  }
              } catch (e) {
-                 this.messages.push({ sender: 'bot', text: 'Сервис поддержки временно недоступен. Пожалуйста, напишите в Telegram: @NativeTravelSupportBot' });
+                 this.messages.push({ sender: 'bot', text: 'Сервис поддержки временно недоступен. Пожалуйста, напишите в Telegram: @NativeTravelSuppport_bot' });
              } finally {
                  this.isSending = false;
                  this.$nextTick(() => { this.scrollToBottom(); });
@@ -76,9 +110,12 @@
                     </div>
                 </div>
             </template>
-            <div x-show="isSending" class="d-flex justify-content-start">
-                <div class="bg-white text-muted shadow-sm p-2 px-3 rounded-3 small">
-                    <span class="spinner-grow spinner-grow-sm me-1"></span> Печатает ответ...
+            <div x-show="isSending" style="display: none;">
+                <div class="d-flex justify-content-start">
+                    <div class="bg-white text-muted shadow-sm p-2 px-3 rounded-3 small">
+                        <span class="spinner-grow spinner-grow-sm me-1 text-warning"></span>
+                        <span th:text="#{chat.typing}">Печатает ответ...</span>
+                    </div>
                 </div>
             </div>
         </div>

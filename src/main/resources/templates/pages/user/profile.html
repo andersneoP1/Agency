@@ -65,7 +65,7 @@
             <!-- Profile Tabs -->
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
                 <div class="card-header bg-white border-bottom p-0">
-                    <ul class="nav nav-tabs nav-fill border-0" id="profileTabs" role="tablist">
+                    <ul class="nav nav-tabs nav-fill border-0 sliding-tab-container" id="profileTabs" role="tablist">
                         <li class="nav-item">
                             <button class="nav-link active py-3 fw-bold" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">
                                 <i class="bi bi-briefcase me-1"></i>Мои поездки (<span th:text="${#lists.size(bookings)}">0</span>)
@@ -91,6 +91,7 @@
                                 <i class="bi bi-gear me-1"></i>Настройки
                             </button>
                         </li>
+                        <span class="tab-sliding-indicator"></span>
                     </ul>
                 </div>
 
@@ -133,7 +134,7 @@
                                                 ОПЛАЧЕНО
                                             </span>
                                             <h5 class="fw-bold text-primary mt-2 mb-0" 
-                                                th:text="${#numbers.formatDecimal(b.totalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">80 910 ₽</h5>
+                                                th:text="${@currencyService.format(b.totalPrice())}">80 910 ₽</h5>
                                         </div>
 
                                         <div class="col-md-3 text-md-end d-flex flex-column gap-2">
@@ -177,7 +178,7 @@
                                             </h6>
                                             <small class="text-muted d-block mb-2" th:text="${tour.country() + ', ' + tour.city()}">Курорт</small>
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <strong class="text-primary" th:text="${#numbers.formatDecimal(tour.price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</strong>
+                                                <strong class="text-primary" th:text="${@currencyService.format(tour.price())}">89 900 ₽</strong>
                                                 <a th:href="@{'/tours/' + ${tour.id()}}" class="btn btn-warning btn-sm rounded-pill fw-bold">Подробнее</a>
                                             </div>
                                         </div>
@@ -261,7 +262,7 @@
                                         <p class="text-muted small mb-3" th:text="${survey.recommendationReason()}">Обоснование</p>
                                         <div class="d-flex align-items-baseline gap-3 mb-4">
                                             <h3 class="fw-extrabold text-primary mb-0" 
-                                                th:text="${#numbers.formatDecimal(survey.recommendedTour().price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</h3>
+                                                th:text="${@currencyService.format(survey.recommendedTour().price())}">89 900 ₽</h3>
                                             <span class="text-muted small">/ за тур</span>
                                         </div>
                                         <div class="d-flex gap-2">
@@ -323,14 +324,14 @@
     <!-- Chat Widget -->
     <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
 
-    <script>
+    <script th:inline="javascript">
         function profileApp() {
             return {
                 isSaving: false,
                 form: {
-                    firstName: '[[${user.firstName()}]]',
-                    lastName: '[[${user.lastName()}]]',
-                    phone: '[[${user.phone() ?: ''}]]'
+                    firstName: /*[[${user.firstName()}]]*/ '',
+                    lastName: /*[[${user.lastName()}]]*/ '',
+                    phone: /*[[${user.phone() ?: ''}]]*/ ''
                 },
                 copyRefLink() {
                     const input = document.getElementById('refLinkInput');

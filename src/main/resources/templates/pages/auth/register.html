@@ -14,59 +14,12 @@
             <div class="row justify-content-center">
                 <div class="col-md-8 col-lg-6 col-xl-5">
                     <div class="card border-0 shadow-lg rounded-4 p-4 p-sm-5"
-                         x-data="{
-                             firstName: '',
-                             lastName: '',
-                             email: '',
-                             phone: '',
-                             password: '',
-                             confirmPassword: '',
-                             referralCode: '[[${referralCode ?: ''}]]',
-                             errorMessage: '',
-                             fieldErrors: {},
-                             loading: false,
-                             async submitRegister() {
-                                 this.errorMessage = '';
-                                 this.fieldErrors = {};
-                                 if (this.password !== this.confirmPassword) {
-                                     this.errorMessage = 'Пароли не совпадают';
-                                     return;
-                                 }
-                                 this.loading = true;
-                                 try {
-                                     const res = await fetch('/api/v1/auth/register', {
-                                         method: 'POST',
-                                         headers: { 'Content-Type': 'application/json' },
-                                         body: JSON.stringify({
-                                             firstName: this.firstName,
-                                             lastName: this.lastName,
-                                             email: this.email,
-                                             phone: this.phone,
-                                             password: this.password,
-                                             referralCode: this.referralCode || null
-                                         })
-                                     });
-                                     const data = await res.json();
-                                     if (res.ok) {
-                                         window.location.href = '/login?registered=true';
-                                     } else {
-                                         this.errorMessage = data.detail || 'Ошибка регистрации';
-                                         if (data.errors) {
-                                             this.fieldErrors = data.errors;
-                                         }
-                                     }
-                                 } catch (err) {
-                                     this.errorMessage = 'Ошибка сети. Попробуйте позже.';
-                                 } finally {
-                                     this.loading = false;
-                                 }
-                             }
-                         }">
+                         x-data="registerApp(window.REGISTER_CONFIG)">
 
                         <div class="text-center mb-4">
                             <i class="bi bi-person-plus text-warning fs-1"></i>
-                            <h3 class="fw-bold mt-2">Создать аккаунт</h3>
-                            <p class="text-muted small">Присоединяйтесь к тысячам счастливых путешественников</p>
+                            <h3 class="fw-bold mt-2" th:text="#{auth.register.title}">Создать аккаунт</h3>
+                            <p class="text-muted small" th:text="#{auth.register.subtitle}">Присоединяйтесь к тысячам счастливых путешественников</p>
                         </div>
 
                         <div x-show="errorMessage" x-text="errorMessage" class="alert alert-danger small py-2" role="alert" style="display: none;"></div>
@@ -120,7 +73,7 @@
                                 </label>
                             </div>
 
-                            <button type="submit" class="btn btn-warning w-100 fw-bold py-2 shadow-sm" :disabled="loading">
+                            <button type="submit" class="btn btn-warning w-100 fw-bold py-2 shadow-sm btn-shimmer" :disabled="loading">
                                 <span x-show="!loading"><i class="bi bi-check-lg me-1"></i> Зарегистрироваться</span>
                                 <span x-show="loading" style="display: none;"><span class="spinner-border spinner-border-sm me-1"></span> Регистрация...</span>
                             </button>
@@ -141,5 +94,65 @@
 
     <!-- Chat Widget -->
     <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.REGISTER_CONFIG = {
+            referralCode: /*[[${referralCode ?: ''}]]*/ ''
+        };
+        /*]]>*/
+
+        function registerApp(config) {
+            config = config || {};
+            return {
+                firstName: '',
+                lastName: '',
+                email: '',
+                phone: '',
+                password: '',
+                confirmPassword: '',
+                referralCode: config.referralCode || '',
+                errorMessage: '',
+                fieldErrors: {},
+                loading: false,
+                async submitRegister() {
+                    this.errorMessage = '';
+                    this.fieldErrors = {};
+                    if (this.password !== this.confirmPassword) {
+                        this.errorMessage = 'Пароли не совпадают';
+                        return;
+                    }
+                    this.loading = true;
+                    try {
+                        const res = await fetch('/api/v1/auth/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                firstName: this.firstName,
+                                lastName: this.lastName,
+                                email: this.email,
+                                phone: this.phone,
+                                password: this.password,
+                                referralCode: this.referralCode || null
+                            })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            window.location.href = '/login?registered=true';
+                        } else {
+                            this.errorMessage = data.detail || 'Ошибка регистрации';
+                            if (data.errors) {
+                                this.fieldErrors = data.errors;
+                            }
+                        }
+                    } catch (err) {
+                        this.errorMessage = 'Ошибка сети. Попробуйте позже.';
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            };
+        }
+    </script>
 </body>
 </html>

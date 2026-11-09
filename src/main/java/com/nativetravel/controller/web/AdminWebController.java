@@ -27,7 +27,7 @@ public class AdminWebController {
     private final TourService tourService;
     private final ReviewService reviewService;
 
-    @GetMapping
+    @GetMapping({"", "/", "/dashboard"})
     public String dashboard(Model model) {
         model.addAttribute("pageTitle", "Дашборд администратора | Native Travel");
         model.addAttribute("activeAdminTab", "dashboard");
@@ -39,7 +39,7 @@ public class AdminWebController {
     public String tours(@PageableDefault(size = 20) Pageable pageable, Model model) {
         model.addAttribute("pageTitle", "Управление турами | Панель администратора");
         model.addAttribute("activeAdminTab", "tours");
-        model.addAttribute("toursPage", tourService.getTours(null));
+        model.addAttribute("toursPage", adminService.getAllTours(pageable));
         return "pages/admin/tours";
     }
 

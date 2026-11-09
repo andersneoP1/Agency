@@ -34,5 +34,13 @@ public interface SupportChatService {
      * @return системное сообщение о передаче оператору
      */
     SupportMessageDto escalateToOperator(String sessionId);
+
+    /**
+     * Зафиксировать системное уведомление о занятости всех операторов.
+     *
+     * @param sessionId идентификатор сессии
+     * @return системное сообщение
+     */
+    SupportMessageDto recordOperatorBusy(String sessionId);
 }
 

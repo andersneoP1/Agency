@@ -101,7 +101,7 @@
                                 <div class="col-md-3 text-md-end">
                                     <span class="text-muted small d-block">Кол-во: <strong th:text="${item.quantity()}">1</strong></span>
                                     <h4 class="fw-extrabold text-primary mb-0" 
-                                        th:text="${#numbers.formatDecimal(item.subtotalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</h4>
+                                        th:text="${@currencyService.format(item.subtotalPrice())}">89 900 ₽</h4>
                                 </div>
 
                                 <!-- Delete Action -->
@@ -136,7 +136,7 @@
                         <div class="d-flex justify-content-between align-items-baseline mb-4">
                             <span class="fs-5 fw-bold text-dark">Сумма заказа:</span>
                             <h2 class="h3 fw-extrabold text-primary mb-0" 
-                                th:text="${#numbers.formatDecimal(cart.totalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</h2>
+                                th:text="${@currencyService.format(cart.totalPrice())}">89 900 ₽</h2>
                         </div>
 
                         <!-- Direct Checkout Form / Links -->

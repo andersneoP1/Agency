@@ -136,16 +136,16 @@
                         </div>
                         <div class="card-body p-4 d-flex flex-column">
                             <div class="d-flex justify-content-between text-muted small mb-2">
-                                <span><i class="bi bi-geo-alt-fill text-danger me-1"></i>Турция, Анталья</span>
+                                <span><i class="bi bi-geo-alt-fill text-danger me-1"></i><span th:text="#{home.hot.tour1.country}">Турция, Анталья</span></span>
                                 <span class="text-warning"><i class="bi bi-star-fill me-1"></i>5.0</span>
                             </div>
                             <h5 class="card-title fw-bold">Grand Resort & All Inclusive</h5>
-                            <p class="card-text text-muted small flex-grow-1">7 дней на первой линии Средиземного моря, система Всё Включено, спа и перелёт включены.</p>
+                            <p class="card-text text-muted small flex-grow-1" th:text="#{home.hot.tour1.desc}">7 дней на первой линии Средиземного моря, система Всё Включено, спа и перелёт включены.</p>
                             <hr>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <small class="text-muted d-block" th:text="#{home.hot.from}">Стоимость от</small>
-                                    <span class="fs-4 fw-bold text-dark">64 500 <span th:text="#{common.currency}">₽</span></span>
+                                    <span class="fs-4 fw-bold text-dark" th:text="${@currencyService.format(64500)}">64 500 ₽</span>
                                 </div>
                                 <a th:href="@{/tours}" class="btn btn-warning fw-semibold px-3 btn-shimmer" th:text="#{common.details}">Подробнее</a>
                             </div>
@@ -158,20 +158,20 @@
                         <div class="position-relative overflow-hidden" style="height: 220px;">
                             <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&auto=format&fit=crop"
                                  class="w-100 h-100 object-fit-cover card-img-zoom" alt="Тур">
-                            <span class="position-absolute top-0 end-0 m-3 badge bg-success fs-6 fw-bold pulse-hot-badge">ХИТ</span>
+                            <span class="position-absolute top-0 end-0 m-3 badge bg-success fs-6 fw-bold pulse-hot-badge">HIT</span>
                         </div>
                         <div class="card-body p-4 d-flex flex-column">
                             <div class="d-flex justify-content-between text-muted small mb-2">
-                                <span><i class="bi bi-geo-alt-fill text-danger me-1"></i>ОАЭ, Дубай</span>
+                                <span><i class="bi bi-geo-alt-fill text-danger me-1"></i><span th:text="#{home.hot.tour2.country}">ОАЭ, Дубай</span></span>
                                 <span class="text-warning"><i class="bi bi-star-fill me-1"></i>4.9</span>
                             </div>
                             <h5 class="card-title fw-bold">Marina Skyline Luxury Tour</h5>
-                            <p class="card-text text-muted small flex-grow-1">Незабываемый отдых в центре Дубай Марина с экскурсией по сафари и посещением Burj Khalifa.</p>
+                            <p class="card-text text-muted small flex-grow-1" th:text="#{home.hot.tour2.desc}">Незабываемый отдых в центре Дубай Марина с экскурсией по сафари и посещением Burj Khalifa.</p>
                             <hr>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <small class="text-muted d-block" th:text="#{home.hot.from}">Стоимость от</small>
-                                    <span class="fs-4 fw-bold text-dark">98 000 <span th:text="#{common.currency}">₽</span></span>
+                                    <span class="fs-4 fw-bold text-dark" th:text="${@currencyService.format(98000)}">98 000 ₽</span>
                                 </div>
                                 <a th:href="@{/tours}" class="btn btn-warning fw-semibold px-3 btn-shimmer" th:text="#{common.details}">Подробнее</a>
                             </div>
@@ -188,16 +188,16 @@
                         </div>
                         <div class="card-body p-4 d-flex flex-column">
                             <div class="d-flex justify-content-between text-muted small mb-2">
-                                <span><i class="bi bi-geo-alt-fill text-danger me-1"></i>Таиланд, Пхукет</span>
+                                <span><i class="bi bi-geo-alt-fill text-danger me-1"></i><span th:text="#{home.hot.tour3.country}">Таиланд, Пхукет</span></span>
                                 <span class="text-warning"><i class="bi bi-star-fill me-1"></i>4.8</span>
                             </div>
                             <h5 class="card-title fw-bold">Tropical Paradise Villa Retreat</h5>
-                            <p class="card-text text-muted small flex-grow-1">Вилла с персональным бассейном среди тропической зелени и белых песчаных пляжей Андаманского моря.</p>
+                            <p class="card-text text-muted small flex-grow-1" th:text="#{home.hot.tour3.desc}">Вилла с персональным бассейном среди тропической зелени и белых песчаных пляжей Андаманского моря.</p>
                             <hr>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <small class="text-muted d-block" th:text="#{home.hot.from}">Стоимость от</small>
-                                    <span class="fs-4 fw-bold text-dark">112 000 <span th:text="#{common.currency}">₽</span></span>
+                                    <span class="fs-4 fw-bold text-dark" th:text="${@currencyService.format(112000)}">112 000 ₽</span>
                                 </div>
                                 <a th:href="@{/tours}" class="btn btn-warning fw-semibold px-3 btn-shimmer" th:text="#{common.details}">Подробнее</a>
                             </div>

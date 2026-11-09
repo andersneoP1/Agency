@@ -65,5 +65,11 @@ public class SupportChatController {
     public ResponseEntity<SupportMessageDto> escalate(@RequestParam String sessionId) {
         return ResponseEntity.ok(supportChatService.escalateToOperator(sessionId));
     }
+
+    @Operation(summary = "Зафиксировать уведомление о занятости операторов", description = "Сохраняет системное сообщение о занятости всех операторов")
+    @PostMapping("/operator-busy")
+    public ResponseEntity<SupportMessageDto> recordOperatorBusy(@RequestBody SupportMessageRequest request) {
+        return ResponseEntity.ok(supportChatService.recordOperatorBusy(request.sessionId()));
+    }
 }
 

@@ -4,22 +4,7 @@
     <title>Форма тура | Native Travel</title>
 </head>
 <body class="d-flex flex-column h-100 bg-light" 
-      x-data="tourFormApp({
-          id: [[${tour != null ? tour.id() : 'null'}]],
-          title: '[[${tour != null ? tour.title() : ''}]]',
-          description: '[[${tour != null ? tour.description() : ''}]]',
-          country: '[[${tour != null ? tour.country() : ''}]]',
-          city: '[[${tour != null ? tour.city() : ''}]]',
-          hotelId: [[${tour != null && tour.hotel() != null ? tour.hotel().id() : 'null'}]],
-          price: [[${tour != null ? tour.price() : 50000}]],
-          startDate: '[[${tour != null ? tour.startDate() : ''}]]',
-          endDate: '[[${tour != null ? tour.endDate() : ''}]]',
-          durationDays: [[${tour != null ? tour.durationDays() : 7}]],
-          includedServices: '[[${tour != null ? tour.includedServices() : 'Перелет, Трансфер, Все включено, Страховка'}]]',
-          imageUrl: '[[${tour != null ? tour.imageUrl() : ''}]]',
-          hotOffer: [[${tour != null ? tour.hotOffer() : false}]],
-          availableSlots: [[${tour != null ? tour.availableSlots() : 10}]]
-      })">
+      x-data="tourFormApp(window.TOUR_FORM_CONFIG)">
 
     <!-- Admin Navbar -->
     <div th:replace="~{fragments/admin-navbar :: admin-navbar('tours')}"></div>
@@ -137,8 +122,28 @@
     <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
-    <script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.TOUR_FORM_CONFIG = {
+            id: /*[[${tour != null ? tour.id() : null}]]*/ null,
+            title: /*[[${tour != null ? tour.title() : ''}]]*/ '',
+            description: /*[[${tour != null ? tour.description() : ''}]]*/ '',
+            country: /*[[${tour != null ? tour.country() : ''}]]*/ '',
+            city: /*[[${tour != null ? tour.city() : ''}]]*/ '',
+            hotelId: /*[[${tour != null && tour.hotel() != null ? tour.hotel().id() : null}]]*/ null,
+            price: /*[[${tour != null ? tour.price() : 50000}]]*/ 50000,
+            startDate: /*[[${tour != null ? tour.startDate() : ''}]]*/ '',
+            endDate: /*[[${tour != null ? tour.endDate() : ''}]]*/ '',
+            durationDays: /*[[${tour != null ? tour.durationDays() : 7}]]*/ 7,
+            includedServices: /*[[${tour != null ? tour.includedServices() : 'Перелет, Трансфер, Все включено, Страховка'}]]*/ 'Перелет, Трансфер, Все включено, Страховка',
+            imageUrl: /*[[${tour != null ? tour.imageUrl() : ''}]]*/ '',
+            hotOffer: /*[[${tour != null ? tour.hotOffer() : false}]]*/ false,
+            availableSlots: /*[[${tour != null ? tour.availableSlots() : 10}]]*/ 10
+        };
+        /*]]>*/
+
         function tourFormApp(initial) {
+            initial = initial || {};
             return {
                 id: initial.id,
                 isSaving: false,

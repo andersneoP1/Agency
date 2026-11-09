@@ -121,6 +121,13 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<TourDto> getAllTours(Pageable pageable) {
+        log.debug("Fetching all tours for admin, pageable: {}", pageable);
+        return tourRepository.findAll(pageable).map(tourMapper::toDto);
+    }
+
+    @Override
     @Transactional
     public TourDto createTour(TourCreateRequest request) {
         Hotel hotel = null;

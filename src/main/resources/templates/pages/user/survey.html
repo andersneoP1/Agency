@@ -188,7 +188,7 @@
                                     <div class="d-flex justify-content-between align-items-center pt-3 border-top">
                                         <div>
                                             <span class="text-muted small d-block">Стоимость за тур</span>
-                                            <h3 class="fw-extrabold text-primary mb-0" x-text="formatMoney(result.recommendedTour.price) + ' ₽'"></h3>
+                                            <h3 class="fw-extrabold text-primary mb-0" x-text="formatMoney(result.recommendedTour.price)"></h3>
                                         </div>
                                         <div class="d-flex gap-2">
                                             <a :href="'/booking?tourId=' + result.recommendedTour.id" class="btn btn-warning btn-lg fw-bold rounded-pill px-4 shadow-sm">

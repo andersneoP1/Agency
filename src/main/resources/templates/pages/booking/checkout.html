@@ -140,22 +140,24 @@
                         <!-- Price Breakdown -->
                         <div class="d-flex justify-content-between text-muted small mb-2">
                             <span>Стоимость:</span>
-                            <span x-text="formatMoney(originalPrice) + ' ₽'">0 ₽</span>
+                            <span x-text="formatMoney(originalPrice)">0 ₽</span>
                         </div>
-                        <div class="d-flex justify-content-between text-success small mb-2" x-show="discountAmount > 0" style="display: none;">
-                            <span>Скидка по промокоду:</span>
-                            <span x-text="'-' + formatMoney(discountAmount) + ' ₽'">-0 ₽</span>
+                        <div x-show="discountAmount > 0" style="display: none;">
+                            <div class="d-flex justify-content-between text-success small mb-2">
+                                <span>Скидка по промокоду:</span>
+                                <span x-text="'-' + formatMoney(discountAmount)">-0 ₽</span>
+                            </div>
                         </div>
                         <div class="d-flex justify-content-between text-muted small mb-3">
                             <span>Сервисный сбор:</span>
-                            <span class="text-success fw-bold">0 ₽</span>
+                            <span class="text-success fw-bold" x-text="formatMoney(0)">0 ₽</span>
                         </div>
 
                         <hr class="my-3">
 
                         <div class="d-flex justify-content-between align-items-baseline mb-4">
                             <span class="fs-5 fw-bold text-dark">К оплате:</span>
-                            <h2 class="h3 fw-extrabold text-primary mb-0" x-text="formatMoney(finalPrice) + ' ₽'">0 ₽</h2>
+                            <h2 class="h3 fw-extrabold text-primary mb-0" x-text="formatMoney(finalPrice)">0 ₽</h2>
                         </div>
 
                         <!-- Submit CTA -->

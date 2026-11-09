@@ -122,3 +122,9 @@ INSERT INTO promo_codes (id, code, discount_percent, min_order_amount, max_uses,
 (3, 'NATIVE15', 15, 30000.00, 200, 0, '2026-12-31 23:59:59+00', TRUE, CURRENT_TIMESTAMP),
 (4, 'FLY5', 5, 5000.00, 1000, 0, '2027-01-01 00:00:00+00', TRUE, CURRENT_TIMESTAMP);
 
+-- 5. Advance auto-increment sequences past seeded IDs
+ALTER TABLE hotels ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE tours ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE flights ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE promo_codes ALTER COLUMN id RESTART WITH 100;
+

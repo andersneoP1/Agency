@@ -27,3 +27,9 @@ spring:
 logging:
   level:
     com.nativetravel: DEBUG
+
+app:
+  telegram:
+    enabled: ${TELEGRAM_BOT_ENABLED:true}
+    bot-username: ${TELEGRAM_BOT_USERNAME:NativeTravelSuppport_bot}
+    bot-token: ${TELEGRAM_BOT_TOKEN:9255986103:AAExBRvhrYePSat2xM6E9RJXIIaBoWZurtE}

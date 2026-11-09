@@ -15,20 +15,20 @@
             <!-- Breadcrumb -->
             <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Главная</a></li>
-                    <li class="breadcrumb-item"><a th:href="@{/tours}" class="text-decoration-none">Каталог</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Сравнение предложений</li>
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none" th:text="#{nav.home}">Главная</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/tours}" class="text-decoration-none" th:text="#{nav.tours}">Каталог</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" th:text="#{compare.title}">Сравнение предложений</li>
                 </ol>
             </nav>
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h2 fw-bold text-dark mb-1"><i class="bi bi-arrow-left-right text-primary me-2"></i>Сравнение туров</h1>
+                    <h1 class="h2 fw-bold text-dark mb-1"><i class="bi bi-arrow-left-right text-primary me-2"></i><span th:text="#{compare.title}">Сравнение туров</span></h1>
                     <p class="text-muted mb-0">Сопоставление условий, отелей и цен (до 4 туров)</p>
                 </div>
                 <div th:unless="${#lists.isEmpty(tours)}">
                     <button class="btn btn-outline-danger btn-sm rounded-pill" onclick="window.NT_Compare.clear()">
-                        <i class="bi bi-trash3 me-1"></i> Очистить сравнение
+                        <i class="bi bi-trash3 me-1"></i> <span th:text="#{compare.clear_all}">Очистить сравнение</span>
                     </button>
                 </div>
             </div>
@@ -36,11 +36,11 @@
             <!-- Empty State -->
             <div th:if="${#lists.isEmpty(tours)}" class="card border-0 shadow-sm rounded-4 p-5 text-center my-4">
                 <i class="bi bi-card-checklist display-3 text-muted mb-3"></i>
-                <h3 class="fw-bold">Нет выбранных туров для сравнения</h3>
-                <p class="text-muted">Перейдите в каталог туров и отметьте чекбоксы «Сравнить» на карточках понравившихся предложений.</p>
+                <h3 class="fw-bold" th:text="#{compare.empty}">Нет выбранных туров для сравнения</h3>
+                <p class="text-muted" th:text="#{compare.choose_tours}">Перейдите в каталог туров и отметьте чекбоксы «Сравнить» на карточках понравившихся предложений.</p>
                 <div>
                     <a th:href="@{/tours}" class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-sm">
-                        <i class="bi bi-search me-1"></i> Перейти в каталог туров
+                        <i class="bi bi-search me-1"></i> <span th:text="#{compare.to_catalog}">Перейти в каталог туров</span>
                     </a>
                 </div>
             </div>
@@ -65,8 +65,8 @@
                                         <a th:href="@{'/tours/' + ${tour.id()}}" class="text-dark text-decoration-none" th:text="${tour.title()}">Тур</a>
                                     </h6>
                                     <span class="h5 fw-bold text-primary d-block mb-2" 
-                                          th:text="${#numbers.formatDecimal(tour.price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</span>
-                                    <a th:href="@{'/booking?tourId=' + ${tour.id()}}" class="btn btn-warning btn-sm w-100 fw-bold rounded-pill">
+                                          th:text="${@currencyService.format(tour.price())}">89 900 ₽</span>
+                                    <a th:href="@{'/booking?tourId=' + ${tour.id()}}" class="btn btn-warning btn-sm w-100 fw-bold rounded-pill" th:text="#{common.book}">
                                         Забронировать
                                     </a>
                                 </th>

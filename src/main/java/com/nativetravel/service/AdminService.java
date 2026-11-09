@@ -26,6 +26,11 @@ public interface AdminService {
     DashboardStatsDto getDashboardStats();
 
     /**
+     * Список всех туров для администратора.
+     */
+    Page<TourDto> getAllTours(Pageable pageable);
+
+    /**
      * Создание нового тура.
      */
     TourDto createTour(TourCreateRequest request);

@@ -1,10 +1,14 @@
 package com.nativetravel.bot;
 
+import com.nativetravel.dto.SupportMessageDto;
+import com.nativetravel.dto.SupportMessageRequest;
+import com.nativetravel.entity.HotOfferSubscription;
 import com.nativetravel.entity.Tour;
 import com.nativetravel.entity.User;
 import com.nativetravel.repository.HotOfferSubscriptionRepository;
 import com.nativetravel.repository.TourRepository;
 import com.nativetravel.repository.UserRepository;
+import com.nativetravel.service.SupportChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,35 +23,46 @@ import java.util.Optional;
 
 /**
  * Telegram-бот турагентства Native Travel.
- * Обрабатывает команды /start, /help, /tours, /faq, /link <code>.
+ * Обрабатывает команды /start, /help, /tours, /faq, /link &lt;code&gt;, /subscribe, /unsubscribe
+ * и входящие вопросы службы поддержки через SupportChatService.
  */
 @Component
 @ConditionalOnProperty(prefix = "app.telegram", name = "enabled", havingValue = "true", matchIfMissing = false)
 @Slf4j
 public class NativeTravelTelegramBot extends TelegramLongPollingBot {
 
+    private final String botToken;
     private final String botUsername;
     private final TourRepository tourRepository;
     private final UserRepository userRepository;
     private final HotOfferSubscriptionRepository subscriptionRepository;
+    private final SupportChatService supportChatService;
 
     public NativeTravelTelegramBot(
             @Value("${app.telegram.bot-token:mock-token}") String botToken,
-            @Value("${app.telegram.bot-username:NativeTravelSupportBot}") String botUsername,
+            @Value("${app.telegram.bot-username:NativeTravelSuppport_bot}") String botUsername,
             TourRepository tourRepository,
             UserRepository userRepository,
-            HotOfferSubscriptionRepository subscriptionRepository) {
+            HotOfferSubscriptionRepository subscriptionRepository,
+            SupportChatService supportChatService) {
         super(botToken);
+        this.botToken = botToken;
         this.botUsername = botUsername;
         this.tourRepository = tourRepository;
         this.userRepository = userRepository;
         this.subscriptionRepository = subscriptionRepository;
+        this.supportChatService = supportChatService;
         log.info("Initialized NativeTravelTelegramBot with username @{}", botUsername);
     }
 
     @Override
     public String getBotUsername() {
         return botUsername;
+    }
+
+    @Override
+    public String getBotToken() {
+        return botToken;
     }
 
     @Override
@@ -68,10 +83,14 @@ public class NativeTravelTelegramBot extends TelegramLongPollingBot {
             sendResponse(chatId, getHotToursMessage());
         } else if (messageText.startsWith("/faq")) {
             sendResponse(chatId, getFaqMessage());
+        } else if (messageText.startsWith("/subscribe")) {
+            handleSubscribeCommand(chatId);
+        } else if (messageText.startsWith("/unsubscribe")) {
+            handleUnsubscribeCommand(chatId);
         } else if (messageText.startsWith("/link")) {
             handleLinkCommand(chatId, messageText);
         } else {
-            sendResponse(chatId, "Команда не распознана. Введите /help для просмотра списка доступных команд.");
+            handleSupportMessage(chatId, messageText);
         }
     }
 
@@ -96,23 +115,65 @@ public class NativeTravelTelegramBot extends TelegramLongPollingBot {
         sendResponse(chatId, "✅ Ваш Telegram-аккаунт успешно привязан к профилю " + user.getEmail() + "!\nТеперь вы будете получать важные уведомления о бронированиях.");
     }
 
+    private void handleSubscribeCommand(long chatId) {
+        Optional<HotOfferSubscription> existing = subscriptionRepository.findByTelegramChatId(chatId);
+        if (existing.isPresent() && existing.get().isActive()) {
+            sendResponse(chatId, "🔔 Вы уже подписаны на уведомления о горящих турах!");
+            return;
+        }
+        HotOfferSubscription sub = existing.orElseGet(HotOfferSubscription::new);
+        sub.setTelegramChatId(chatId);
+        sub.setActive(true);
+        subscriptionRepository.save(sub);
+        sendResponse(chatId, "🎉 Вы успешно подписались на горящие предложения Native Travel в Telegram!\nМы будем присылать самые выгодные туры.");
+    }
+
+    private void handleUnsubscribeCommand(long chatId) {
+        Optional<HotOfferSubscription> existing = subscriptionRepository.findByTelegramChatId(chatId);
+        if (existing.isPresent() && existing.get().isActive()) {
+            HotOfferSubscription sub = existing.get();
+            sub.setActive(false);
+            subscriptionRepository.save(sub);
+            sendResponse(chatId, "🔕 Вы отписались от уведомлений о горящих турах.");
+        } else {
+            sendResponse(chatId, "Вы не были подписаны на уведомления.");
+        }
+    }
+
+    private void handleSupportMessage(long chatId, String messageText) {
+        try {
+            Optional<User> userOpt = userRepository.findByTelegramChatId(chatId);
+            String email = userOpt.map(User::getEmail).orElse(null);
+            SupportMessageRequest req = new SupportMessageRequest("tg-" + chatId, messageText);
+            SupportMessageDto reply = supportChatService.processMessage(req, email);
+            sendResponse(chatId, reply.message());
+        } catch (Exception e) {
+            log.warn("Failed to process conversational support for tg chat {}: {}", chatId, e.getMessage());
+            sendResponse(chatId, "Я на связи! Если у вас вопрос по бронированию, турам или оплате — напишите его подробнее, или используйте /help.");
+        }
+    }
+
     private String getStartMessage() {
-        return "👋 Добро пожаловать в официальный бот турагентства Native Travel!\n\n"
-                + "Здесь вы можете узнавать о горящих турах, получать ответы на частые вопросы и привязать свой аккаунт.\n\n"
+        return "👋 Добро пожаловать в официальный бот турагентства Native Travel (@" + botUsername + ")!\n\n"
+                + "Здесь вы можете узнавать о горящих турах, получать консультацию поддержки и привязать свой аккаунт.\n\n"
                 + "Доступные команды:\n"
-                + "✈️ /tours — горящие предложения недели\n"
+                + "✈️ /tours — топ горящих предложений недели\n"
                 + "❓ /faq — ответы на частые вопросы\n"
-                + "🔗 /link <code> — привязать аккаунт сайта по реферальному коду\n"
-                + "ℹ️ /help — справка и контакты службы поддержки";
+                + "🔔 /subscribe — подписаться на горящие туры\n"
+                + "🔗 /link <код> — привязать аккаунт сайта (реф. код из профиля)\n"
+                + "ℹ️ /help — справка и контакты службы поддержки\n\n"
+                + "💬 Вы также можете просто написать свой вопрос в этот чат, и бот поддержки ответит вам!";
     }
 
     private String getHelpMessage() {
-        return "ℹ️ Справка Native Travel Bot:\n\n"
+        return "ℹ️ Справка Native Travel Bot (@" + botUsername + "):\n\n"
                 + "• /tours — топ горящих предложений\n"
                 + "• /faq — информация о бронировании и оплате\n"
+                + "• /subscribe — подписаться на горящие туры\n"
                 + "• /link <код> — привязка Telegram к профилю на сайте\n\n"
                 + "📞 Горячая линия поддержки: 8 (800) 555-35-35\n"
-                + "🌐 Наш сайт: https://nativetravel.local";
+                + "🌐 Наш сайт: http://localhost:8080\n\n"
+                + "💬 Чтобы задать вопрос — просто напишите его в этот чат!";
     }
 
     private String getHotToursMessage() {
@@ -129,7 +190,7 @@ public class NativeTravelTelegramBot extends TelegramLongPollingBot {
                     .append("📍 ").append(tour.getCountry()).append(", ").append(tour.getCity()).append("\n")
                     .append("💰 Цена: от ").append(tour.getPrice()).append(" ₽ (").append(tour.getDurationDays()).append(" дн.)\n\n");
         }
-        sb.append("Для полного бронирования перейдите на сайт.");
+        sb.append("Для бронирования перейдите на наш сайт!");
         return sb.toString();
     }
 
@@ -140,15 +201,20 @@ public class NativeTravelTelegramBot extends TelegramLongPollingBot {
                 + "3. Как получить скидку? Используйте промокод WELCOME10 на 10% скидки при первой покупке!";
     }
 
-    private void sendResponse(long chatId, String text) {
+    public boolean sendTextMessage(long chatId, String text) {
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));
         message.setText(text);
         try {
             execute(message);
+            return true;
         } catch (TelegramApiException e) {
             log.error("Failed to send Telegram message to chatId {}: {}", chatId, e.getMessage());
+            return false;
         }
     }
-}
 
+    private void sendResponse(long chatId, String text) {
+        sendTextMessage(chatId, text);
+    }
+}

@@ -2,6 +2,28 @@
  * Native Travel Global Client Script
  */
 
+// Currency & Internationalization helpers
+window.formatMoney = function(amountInRubles) {
+    if (amountInRubles === null || amountInRubles === undefined || isNaN(amountInRubles)) {
+        return '0';
+    }
+    const curr = window.NT_CURRENCY || { code: 'RUB', symbol: '₽', rate: 1.0, prefix: false };
+    const converted = Math.round(Number(amountInRubles) * curr.rate);
+    const formatted = converted.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    if (curr.prefix) {
+        return curr.symbol + formatted;
+    } else {
+        return formatted + ' ' + curr.symbol;
+    }
+};
+
+window.changeLanguage = function(lang) {
+    document.cookie = 'NT_LANG=' + lang + ';path=/;max-age=' + (30 * 24 * 60 * 60);
+    const url = new URL(window.location.href);
+    url.searchParams.set('lang', lang);
+    window.location.href = url.toString();
+};
+
 // Global Comparison Manager
 window.NT_Compare = {
     STORAGE_KEY: 'nt_compare_tours',
@@ -245,6 +267,115 @@ document.addEventListener('DOMContentLoaded', () => {
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     }
+
+    // Initialize Sliding Indicators for Navbars & Tabs
+    function initSlidingIndicator(options) {
+        const { container, itemSelector, indicatorSelector, activeClass = 'active', followHover = true } = options;
+        if (!container) return;
+
+        let indicator = container.querySelector(indicatorSelector);
+        if (!indicator) {
+            indicator = document.createElement('span');
+            indicator.className = indicatorSelector.replace(/^\./, '');
+            container.appendChild(indicator);
+        }
+
+        function getBox(el) {
+            if (!el || el.offsetParent === null) return null;
+            const cRect = container.getBoundingClientRect();
+            const elRect = el.getBoundingClientRect();
+            return {
+                left: elRect.left - cRect.left + container.scrollLeft,
+                width: elRect.width
+            };
+        }
+
+        function move(target, immediate = false) {
+            const box = getBox(target);
+            if (!box || box.width === 0) {
+                indicator.style.opacity = '0';
+                return;
+            }
+
+            if (immediate) {
+                indicator.style.transition = 'none';
+            }
+
+            indicator.style.opacity = '1';
+            indicator.style.transform = `translateX(${box.left}px)`;
+            indicator.style.width = `${box.width}px`;
+
+            if (immediate) {
+                indicator.offsetHeight; // reflow
+                indicator.style.transition = '';
+            }
+        }
+
+        function getActive() {
+            return container.querySelector(`${itemSelector}.${activeClass}`);
+        }
+
+        function reset(immediate = false) {
+            const active = getActive();
+            if (active) {
+                move(active, immediate);
+            } else {
+                indicator.style.opacity = '0';
+            }
+        }
+
+        const items = container.querySelectorAll(itemSelector);
+        items.forEach(item => {
+            if (followHover) {
+                item.addEventListener('mouseenter', () => move(item));
+            }
+            item.addEventListener('click', () => {
+                setTimeout(() => {
+                    const active = getActive() || item;
+                    move(active);
+                }, 30);
+            });
+        });
+
+        if (followHover) {
+            container.addEventListener('mouseleave', () => reset());
+        }
+
+        // Handle Bootstrap tab shown event
+        container.addEventListener('shown.bs.tab', (e) => {
+            if (e.target) {
+                move(e.target);
+            }
+        });
+
+        window.addEventListener('resize', () => reset(true));
+
+        // Initial positioning
+        requestAnimationFrame(() => reset(true));
+        setTimeout(() => reset(false), 100);
+        setTimeout(() => reset(false), 350);
+    }
+
+    // Attach to navbar and tab containers
+    document.querySelectorAll('.sliding-nav-container').forEach(nav => {
+        initSlidingIndicator({
+            container: nav,
+            itemSelector: '.nav-link',
+            indicatorSelector: '.nav-sliding-indicator',
+            activeClass: 'active',
+            followHover: true
+        });
+    });
+
+    document.querySelectorAll('.sliding-tab-container').forEach(tabContainer => {
+        initSlidingIndicator({
+            container: tabContainer,
+            itemSelector: '.nav-link',
+            indicatorSelector: '.tab-sliding-indicator',
+            activeClass: 'active',
+            followHover: true
+        });
+    });
 
     // Listen to HTMX events for notifications / error handling
     if (document.body) {

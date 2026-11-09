@@ -106,5 +106,22 @@ class SupportChatServiceTest {
         assertThat(result.escalated()).isTrue();
         assertThat(result.message()).contains("эскалировано");
     }
+
+    @Test
+    @DisplayName("Фиксация занятости операторов возвращает соответствующее сообщение")
+    void recordOperatorBusy_savesBusyMessage() {
+        when(supportMessageRepository.save(any(SupportMessage.class))).thenAnswer(invocation -> {
+            SupportMessage msg = invocation.getArgument(0);
+            msg.setId(13L);
+            msg.setCreatedAt(Instant.now());
+            return msg;
+        });
+
+        SupportMessageDto result = chatService.recordOperatorBusy("sess-5");
+
+        assertThat(result).isNotNull();
+        assertThat(result.escalated()).isTrue();
+        assertThat(result.message()).contains("Все операторы в данный момент заняты");
+    }
 }
 

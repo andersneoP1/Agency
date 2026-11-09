@@ -90,7 +90,7 @@
                                 </div>
                                 <div class="col-sm-6">
                                     <span class="text-muted d-block">Оплаченная сумма:</span>
-                                    <strong class="text-success fs-6" th:text="${#numbers.formatDecimal(booking.totalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">80 910 ₽</strong>
+                                    <strong class="text-success fs-6" th:text="${@currencyService.format(booking.totalPrice())}">80 910 ₽</strong>
                                 </div>
                                 <div class="col-sm-6">
                                     <span class="text-muted d-block">Статус:</span>

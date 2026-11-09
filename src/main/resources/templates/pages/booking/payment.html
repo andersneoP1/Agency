@@ -124,7 +124,7 @@
                             <div class="bg-white p-3 rounded-4 shadow-sm d-inline-block mb-3">
                                 <i class="bi bi-qr-code display-1 text-dark"></i>
                             </div>
-                            <div class="small text-muted">Сумма к списанию: <strong class="text-dark" th:text="${#numbers.formatDecimal(booking.totalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">80 910 ₽</strong></div>
+                            <div class="small text-muted">Сумма к списанию: <strong class="text-dark" th:text="${@currencyService.format(booking.totalPrice())}">80 910 ₽</strong></div>
                         </div>
 
                         <!-- Crypto Stub -->
@@ -175,16 +175,16 @@
                         <div class="border-top pt-3 mb-4">
                             <div class="d-flex justify-content-between text-muted small mb-1">
                                 <span>Базовая стоимость:</span>
-                                <span th:text="${#numbers.formatDecimal(booking.originalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</span>
+                                <span th:text="${@currencyService.format(booking.originalPrice())}">89 900 ₽</span>
                             </div>
                             <div class="d-flex justify-content-between text-success small mb-2" th:if="${booking.discountAmount() > 0}">
                                 <span>Скидка:</span>
-                                <span th:text="'-' + ${#numbers.formatDecimal(booking.discountAmount(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">-8 990 ₽</span>
+                                <span th:text="'-' + ${@currencyService.format(booking.discountAmount())}">-8 990 ₽</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-baseline pt-2 border-top">
                                 <span class="fw-bold fs-5">Итого к списанию:</span>
                                 <h3 class="fw-extrabold text-primary mb-0" 
-                                    th:text="${#numbers.formatDecimal(booking.totalPrice(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">80 910 ₽</h3>
+                                    th:text="${@currencyService.format(booking.totalPrice())}">80 910 ₽</h3>
                             </div>
                         </div>
 

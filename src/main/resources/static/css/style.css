@@ -26,7 +26,173 @@ body {
 
 .navbar-nav .nav-link.active {
     color: #ffc107 !important;
-    border-bottom: 2px solid #ffc107;
+}
+
+/* ========================================================
+   SLIDING TAB & NAV INDICATOR ANIMATIONS
+   ======================================================== */
+
+/* Navbar Sliding Indicator */
+.navbar-nav.sliding-nav-container {
+    position: relative;
+}
+
+.navbar-nav.sliding-nav-container .nav-link {
+    position: relative;
+    border-bottom: none !important;
+    padding-left: 0.9rem !important;
+    padding-right: 0.9rem !important;
+}
+
+.nav-sliding-indicator {
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    height: 3px;
+    background: #ffc107;
+    border-radius: 3px 3px 0 0;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.8), 0 0 20px rgba(255, 193, 7, 0.4);
+    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    will-change: transform, width;
+}
+
+@media (max-width: 991.98px) {
+    .nav-sliding-indicator {
+        display: none !important;
+    }
+    .navbar-nav .nav-link.active {
+        border-left: 3px solid #ffc107 !important;
+        padding-left: 0.75rem !important;
+    }
+}
+
+/* Profile / Tab Sliding Indicator */
+#profileTabs.sliding-tab-container {
+    position: relative;
+    border-bottom: 2px solid #e9ecef !important;
+}
+
+#profileTabs .nav-link {
+    border: none !important;
+    background: transparent !important;
+    color: #6c757d;
+    transition: color 0.25s ease;
+    position: relative;
+}
+
+#profileTabs .nav-link:hover {
+    color: #0d6efd;
+    border: none !important;
+    background: transparent !important;
+}
+
+#profileTabs .nav-link.active {
+    color: #0d6efd !important;
+    font-weight: 700;
+    border: none !important;
+    background: transparent !important;
+}
+
+.tab-sliding-indicator {
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #0d6efd 0%, #0dcaf0 100%);
+    border-radius: 3px 3px 0 0;
+    box-shadow: 0 2px 10px rgba(13, 110, 253, 0.4);
+    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    will-change: transform, width;
+}
+
+/* Tab pane fade & slide-in animation */
+.tab-content > .tab-pane {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.28s cubic-bezier(0.25, 1, 0.5, 1), transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.tab-content > .tab-pane.active.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* User dropdown button enhancements */
+#userDropdown {
+    transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+#userDropdown:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.35);
+}
+
+.dropdown-menu {
+    border-radius: 12px !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important;
+    animation: dropdownFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: top;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Flight card route visual */
+.flight-route-container {
+    min-width: 140px;
+}
+
+.flight-route-track {
+    position: relative;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.25rem 0;
+}
+
+.flight-route-track .flight-line {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(13, 110, 253, 0.25) 0%, #0d6efd 50%, rgba(13, 110, 253, 0.25) 100%);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.flight-route-track .flight-plane-badge {
+    position: relative;
+    z-index: 2;
+    background-color: #ffffff;
+    padding: 2px 10px;
+    color: #0d6efd;
+    font-size: 1.05rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    box-shadow: 0 0 0 2px #ffffff;
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.flight-card:hover .flight-route-track .flight-plane-badge {
+    transform: translateX(5px);
 }
 
 /* ========================================================

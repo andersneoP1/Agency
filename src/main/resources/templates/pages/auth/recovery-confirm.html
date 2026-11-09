@@ -14,43 +14,7 @@
             <div class="row justify-content-center">
                 <div class="col-md-7 col-lg-5 col-xl-4">
                     <div class="card border-0 shadow-lg rounded-4 p-4 p-sm-5"
-                         x-data="{
-                             email: '[[${email ?: ''}]]',
-                             code: '',
-                             newPassword: '',
-                             confirmPassword: '',
-                             errorMessage: '',
-                             loading: false,
-                             async submitConfirm() {
-                                 this.errorMessage = '';
-                                 if (this.newPassword !== this.confirmPassword) {
-                                     this.errorMessage = 'Пароли не совпадают';
-                                     return;
-                                 }
-                                 this.loading = true;
-                                 try {
-                                     const res = await fetch('/api/v1/auth/recovery/confirm', {
-                                         method: 'POST',
-                                         headers: { 'Content-Type': 'application/json' },
-                                         body: JSON.stringify({
-                                             email: this.email,
-                                             code: this.code,
-                                             newPassword: this.newPassword
-                                         })
-                                     });
-                                     if (res.ok) {
-                                         window.location.href = '/login?reset=true';
-                                     } else {
-                                         const data = await res.json();
-                                         this.errorMessage = data.detail || 'Неверный или просроченный код';
-                                     }
-                                 } catch (err) {
-                                     this.errorMessage = 'Ошибка сети. Попробуйте позже.';
-                                 } finally {
-                                     this.loading = false;
-                                 }
-                             }
-                         }">
+                         x-data="recoveryConfirmApp(window.RECOVERY_CONFIRM_CONFIG)">
 
                         <div class="text-center mb-4">
                             <i class="bi bi-shield-lock text-warning fs-1"></i>
@@ -104,5 +68,54 @@
 
     <!-- Chat Widget -->
     <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.RECOVERY_CONFIRM_CONFIG = {
+            email: /*[[${email ?: ''}]]*/ ''
+        };
+        /*]]>*/
+
+        function recoveryConfirmApp(config) {
+            config = config || {};
+            return {
+                email: config.email || '',
+                code: '',
+                newPassword: '',
+                confirmPassword: '',
+                errorMessage: '',
+                loading: false,
+                async submitConfirm() {
+                    this.errorMessage = '';
+                    if (this.newPassword !== this.confirmPassword) {
+                        this.errorMessage = 'Пароли не совпадают';
+                        return;
+                    }
+                    this.loading = true;
+                    try {
+                        const res = await fetch('/api/v1/auth/recovery/confirm', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: this.email,
+                                code: this.code,
+                                newPassword: this.newPassword
+                            })
+                        });
+                        if (res.ok) {
+                            window.location.href = '/login?reset=true';
+                        } else {
+                            const data = await res.json();
+                            this.errorMessage = data.detail || 'Неверный или просроченный код';
+                        }
+                    } catch (err) {
+                        this.errorMessage = 'Ошибка сети. Попробуйте позже.';
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            };
+        }
+    </script>
 </body>
 </html>

@@ -18,7 +18,7 @@
 
         <div class="collapse navbar-collapse" id="navbarContent">
             <!-- Center Navigation Links -->
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 sliding-nav-container" id="mainNavbarNav">
                 <li class="nav-item">
                     <a class="nav-link" th:classappend="${activePage == 'home'} ? 'active fw-bold text-warning'"
                        th:href="@{/}" th:text="#{nav.home}">Главная</a>
@@ -46,38 +46,39 @@
                     <a class="nav-link" th:classappend="${activePage == 'faq'} ? 'active fw-bold text-warning'"
                        th:href="@{/faq}" th:text="#{nav.faq}">FAQ</a>
                 </li>
+                <span class="nav-sliding-indicator"></span>
             </ul>
 
             <!-- Right Side: Utilities, Language, Auth -->
             <div class="d-flex align-items-center gap-3">
                 <!-- Compare Quick Button -->
-                <a th:href="@{/compare}" onclick="window.NT_Compare ? window.NT_Compare.goToCompare(event) : true" class="btn btn-outline-info btn-sm position-relative" title="Сравнение туров">
+                <a th:href="@{/compare}" onclick="window.NT_Compare ? window.NT_Compare.goToCompare(event) : true" class="btn btn-outline-info btn-sm position-relative" title="Сравнение туров" th:title="#{nav.compare}">
                     <i class="bi bi-arrow-left-right"></i>
                     <span class="global-compare-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">0</span>
                 </a>
 
                 <!-- Favorites Link -->
-                <a th:href="@{/favorites}" class="btn btn-outline-light btn-sm position-relative" title="Избранное">
+                <a th:href="@{/favorites}" class="btn btn-outline-light btn-sm position-relative" title="Избранное" th:title="#{nav.favorites}">
                     <i class="bi bi-heart"></i>
                 </a>
 
                 <!-- Cart Link -->
-                <a th:href="@{/cart}" class="btn btn-outline-warning btn-sm position-relative" title="Корзина">
+                <a th:href="@{/cart}" class="btn btn-outline-warning btn-sm position-relative" title="Корзина" th:title="#{nav.cart}">
                     <i class="bi bi-cart3"></i>
                 </a>
 
-                <!-- Language Selector -->
+                <!-- Language & Currency Selector -->
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle text-light" type="button"
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle text-light d-flex align-items-center gap-1" type="button"
                             id="langDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-globe2 me-1"></i>
-                        <span th:text="${#locale.language.toUpperCase()}">RU</span>
+                        <span th:text="${(currentCurrency != null ? currentCurrency.flag() : '') + ' ' + #locale.language.toUpperCase() + ' (' + (currentCurrency != null ? currentCurrency.symbol() : '₽') + ')'}">🇷🇺 RU (₽)</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="langDropdown">
-                        <li><a class="dropdown-item" th:href="@{''(lang='ru')}">🇷🇺 Русский (RU)</a></li>
-                        <li><a class="dropdown-item" th:href="@{''(lang='en')}">🇬🇧 English (EN)</a></li>
-                        <li><a class="dropdown-item" th:href="@{''(lang='kk')}">🇰🇿 Қазақша (KK)</a></li>
-                        <li><a class="dropdown-item" th:href="@{''(lang='be')}">🇧🇾 Беларуская (BE)</a></li>
+                        <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="javascript:void(0)" onclick="window.changeLanguage('ru')" th:classappend="${#locale.language == 'ru' ? 'active' : ''}"><span>🇷🇺 Русский</span> <span class="badge bg-secondary ms-2">RUB (₽)</span></a></li>
+                        <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="javascript:void(0)" onclick="window.changeLanguage('en')" th:classappend="${#locale.language == 'en' ? 'active' : ''}"><span>🇬🇧 English</span> <span class="badge bg-secondary ms-2">USD ($)</span></a></li>
+                        <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="javascript:void(0)" onclick="window.changeLanguage('kk')" th:classappend="${#locale.language == 'kk' ? 'active' : ''}"><span>🇰🇿 Қазақша</span> <span class="badge bg-secondary ms-2">KZT (₸)</span></a></li>
+                        <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="javascript:void(0)" onclick="window.changeLanguage('be')" th:classappend="${#locale.language == 'be' ? 'active' : ''}"><span>🇧🇾 Беларуская</span> <span class="badge bg-secondary ms-2">BYN (Br)</span></a></li>
                     </ul>
                 </div>
 

@@ -50,7 +50,7 @@ public class SupportChatServiceImpl implements SupportChatService {
         boolean escalate = false;
         String botReply;
 
-        if (containsAny(text, "оператор", "человек", "менеджер", "живой", "позови", "специалист")) {
+        if (containsAny(text, "оператор", "человек", "менеджер", "живой", "позови", "специалист", "консультант", "соедини", "свяжи")) {
             escalate = true;
             botReply = "Я переключил ваш диалог на живого специалиста службы заботы о клиентах Native Travel. Оператор подключится в течение 2 минут!";
         } else if (containsAny(text, "оплат", "карт", "сбп", "крипт", "деньг", "рубл", "usdt", "терминал")) {
@@ -102,6 +102,20 @@ public class SupportChatServiceImpl implements SupportChatService {
                 .build();
         SupportMessage saved = supportMessageRepository.save(escalationMsg);
         log.info("Session {} manually escalated to operator", sessionId);
+        return toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public SupportMessageDto recordOperatorBusy(String sessionId) {
+        SupportMessage busyMsg = SupportMessage.builder()
+                .sessionId(sessionId)
+                .senderType("BOT")
+                .message("Все операторы в данный момент заняты, попробуйте позднее...")
+                .escalated(true)
+                .build();
+        SupportMessage saved = supportMessageRepository.save(busyMsg);
+        log.info("Session {} marked as operator busy", sessionId);
         return toDto(saved);
     }
 

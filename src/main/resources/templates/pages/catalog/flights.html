@@ -54,7 +54,7 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small fw-bold text-muted">Макс. цена</label>
-                        <input type="number" name="maxPrice" class="form-control" placeholder="₽"
+                        <input type="number" name="maxPrice" class="form-control" th:placeholder="${currentCurrency != null ? currentCurrency.symbol() : '₽'}" placeholder="₽"
                                th:value="${filter != null ? filter.maxPrice() : ''}">
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
@@ -101,28 +101,35 @@
                         <!-- Route & Time Schedule -->
                         <div class="col-md-5">
                             <div class="d-flex align-items-center justify-content-between text-center">
-                                <div>
+                                <div class="text-start text-md-center">
                                     <span class="h4 fw-bold text-dark d-block mb-0" 
                                           th:text="${#temporals.format(flight.departureTime(), 'HH:mm')}">08:30</span>
-                                    <small class="text-muted" th:text="${flight.departureCity()}">Москва</small>
+                                    <small class="text-muted d-block fw-semibold" th:text="${flight.departureCity()}">Москва</small>
                                     <small class="text-secondary d-block" th:text="${#temporals.format(flight.departureTime(), 'dd.MM.yyyy')}">15.06</small>
                                 </div>
 
-                                <div class="px-3 flex-grow-1">
-                                    <div class="text-muted small mb-1"><i class="bi bi-clock me-1"></i>Прямой рейс</div>
-                                    <div class="position-relative">
-                                        <hr class="my-0 border-primary border-2">
-                                        <i class="bi bi-airplane position-absolute top-50 start-50 translate-middle text-primary bg-white px-2"></i>
+                                <div class="px-3 flex-grow-1 flight-route-container">
+                                    <div class="text-muted small mb-1 d-flex align-items-center justify-content-center gap-1">
+                                        <i class="bi bi-clock text-secondary"></i>
+                                        <span th:text="#{flights.direct}">Прямой рейс</span>
                                     </div>
-                                    <small class="text-success fw-semibold mt-1 d-block">
-                                        Мест: <span th:text="${flight.availableSeats()}">45</span>
-                                    </small>
+                                    <div class="flight-route-track">
+                                        <div class="flight-line"></div>
+                                        <span class="flight-plane-badge">
+                                            <i class="bi bi-airplane-fill" style="transform: rotate(90deg); display: inline-block;"></i>
+                                        </span>
+                                    </div>
+                                    <div class="mt-1">
+                                        <small class="text-success fw-semibold d-inline-block">
+                                            <span th:text="#{flights.seats}">Мест</span>: <span th:text="${flight.availableSeats()}">45</span>
+                                        </small>
+                                    </div>
                                 </div>
 
-                                <div>
+                                <div class="text-end text-md-center">
                                     <span class="h4 fw-bold text-dark d-block mb-0" 
                                           th:text="${#temporals.format(flight.arrivalTime(), 'HH:mm')}">13:45</span>
-                                    <small class="text-muted" th:text="${flight.arrivalCity()}">Анталья</small>
+                                    <small class="text-muted d-block fw-semibold" th:text="${flight.arrivalCity()}">Анталья</small>
                                     <small class="text-secondary d-block" th:text="${#temporals.format(flight.arrivalTime(), 'dd.MM.yyyy')}">15.06</small>
                                 </div>
                             </div>
@@ -132,7 +139,7 @@
                         <div class="col-md-4 text-md-end">
                             <span class="text-muted small d-block">Цена за 1 пассажира</span>
                             <h3 class="fw-extrabold text-primary mb-3" 
-                                th:text="${#numbers.formatDecimal(flight.price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">18 500 ₽</h3>
+                                th:text="${@currencyService.format(flight.price())}">18 500 ₽</h3>
                             <div class="d-flex gap-2 justify-content-md-end">
                                 <button class="btn btn-outline-warning fw-bold rounded-pill"
                                         th:data-flight-id="${flight.id()}"

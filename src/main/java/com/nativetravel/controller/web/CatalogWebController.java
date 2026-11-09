@@ -4,10 +4,12 @@ import com.nativetravel.dto.FlightFilterRequest;
 import com.nativetravel.dto.TourDto;
 import com.nativetravel.dto.TourFilterRequest;
 import com.nativetravel.service.ComparisonService;
+import com.nativetravel.service.CurrencyService;
 import com.nativetravel.service.FavoriteService;
 import com.nativetravel.service.FlightService;
 import com.nativetravel.service.TourService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Веб-контроллер для страниц каталога: туры, авиабилеты, карточка тура, сравнение и избранное.
@@ -33,13 +36,31 @@ public class CatalogWebController {
     private final FlightService flightService;
     private final ComparisonService comparisonService;
     private final FavoriteService favoriteService;
+    private final CurrencyService currencyService;
 
     @GetMapping("/tours")
     public String tours(
             @ModelAttribute("filter") TourFilterRequest filter,
             Model model
     ) {
-        Page<TourDto> toursPage = tourService.getTours(filter);
+        Locale locale = LocaleContextHolder.getLocale();
+        TourFilterRequest searchFilter = filter;
+        if (filter != null && (filter.minPrice() != null || filter.maxPrice() != null)) {
+            searchFilter = new TourFilterRequest(
+                    filter.country(),
+                    filter.city(),
+                    currencyService.toBaseRubles(filter.minPrice(), locale),
+                    currencyService.toBaseRubles(filter.maxPrice(), locale),
+                    filter.startDate(),
+                    filter.minStars(),
+                    filter.hotOfferOnly(),
+                    filter.sortBy(),
+                    filter.sortDirection(),
+                    filter.page(),
+                    filter.size()
+            );
+        }
+        Page<TourDto> toursPage = tourService.getTours(searchFilter);
         model.addAttribute("pageTitle", "Каталог туров | Native Travel");
         model.addAttribute("activePage", "tours");
         model.addAttribute("toursPage", toursPage);

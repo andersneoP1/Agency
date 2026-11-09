@@ -29,7 +29,7 @@
                          th:alt="${tour.title()}">
                     <div class="position-absolute top-0 start-0 m-4 d-flex gap-2">
                         <span th:if="${tour.hotOffer()}" class="badge bg-danger px-3 py-2 rounded-pill fw-bold shadow">
-                            <i class="bi bi-fire me-1"></i> Горящее предложение
+                            <i class="bi bi-fire me-1"></i> <span th:text="#{catalog.card.hot}">Горящее предложение</span>
                         </span>
                         <span class="badge bg-dark bg-opacity-75 px-3 py-2 rounded-pill fw-bold text-white shadow">
                             <i class="bi bi-geo-alt-fill text-warning me-1"></i> <span th:text="${tour.country() + ', ' + tour.city()}">Турция</span>
@@ -143,7 +143,7 @@
                         <span class="text-muted small d-block mb-1">Цена тура</span>
                         <div class="d-flex align-items-baseline gap-2 mb-3">
                             <h2 class="display-6 fw-extrabold text-primary mb-0" 
-                                th:text="${#numbers.formatDecimal(tour.price(), 0, 'WHITESPACE', 0, 'POINT')} + ' ₽'">89 900 ₽</h2>
+                                th:text="${@currencyService.format(tour.price())}">89 900 ₽</h2>
                             <small class="text-muted">/ за 2 чел.</small>
                         </div>
 
@@ -166,10 +166,10 @@
                         <div class="d-grid gap-2">
                             <button class="btn btn-warning btn-lg fw-bold rounded-pill shadow-sm btn-shimmer"
                                     @click="addToCart(tourId, 'TOUR')">
-                                <i class="bi bi-cart-plus me-2"></i>Добавить в корзину
+                                <i class="bi bi-cart-plus me-2"></i><span th:text="#{common.details}">Добавить в корзину</span>
                             </button>
                             <a th:href="@{'/booking?tourId=' + ${tour.id()}}" class="btn btn-primary btn-lg fw-bold rounded-pill shadow-sm">
-                                <i class="bi bi-lightning-charge me-2"></i>Забронировать
+                                <i class="bi bi-lightning-charge me-2"></i><span th:text="#{common.book}">Забронировать</span>
                             </a>
                             <div class="d-flex gap-2 mt-2">
                                 <button class="btn btn-outline-danger w-50 rounded-pill fw-semibold"
