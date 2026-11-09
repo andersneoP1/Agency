@@ -112,8 +112,8 @@ flowchart TD
 
 ```bash
 # Клонируйте репозиторий
-git clone https://github.com/nativetravel/native-travel.git
-cd native-travel
+git clone https://github.com/andersneoP1/Agency.git
+cd .\Agency\
 
 # Создайте файл переменных окружения
 cp .env.example .env
