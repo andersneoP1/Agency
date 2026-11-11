@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<head th:replace="~{fragments/head :: head('Авиабилеты | Native Travel')}"></head>
+<body class="d-flex flex-column h-100 bg-light" x-data="flightAdminApp()">
+    <div th:replace="~{fragments/admin-navbar :: admin-navbar('flights')}"></div>
+    <main class="container pb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2">Авиабилеты</h1>
+            <button type="button" class="btn btn-warning" @click="openFlight()"
+                    data-bs-toggle="modal" data-bs-target="#flightModal">Добавить рейс</button>
+        </div>
+        <div class="table-responsive bg-white rounded shadow-sm mb-4">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr><th>Рейс</th><th>Авиакомпания</th><th>Маршрут</th><th>Вылет (UTC)</th><th>Цена</th><th>Места</th><th>Действия</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${flightsPage.empty}"><td colspan="7">Рейсов пока нет.</td></tr>
+                    <tr th:each="flight : ${flightsPage.content}">
+                        <td th:text="${flight.flightNumber()}"></td>
+                        <td th:text="${flight.airline()}"></td>
+                        <td th:text="${flight.departureCity() + ' → ' + flight.arrivalCity()}"></td>
+                        <td th:text="${#temporals.format(flight.departureTime(), 'yyyy-MM-dd HH:mm')}"></td>
+                        <td th:text="${flight.price() + ' ₽'}"></td>
+                        <td th:text="${flight.availableSeats()}"></td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    th:attr="data-index=${flightStat.index}" @click="openFlight(flights[$el.dataset.index])"
+                                    data-bs-toggle="modal" data-bs-target="#flightModal">Редактировать</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+            <nav class="d-flex gap-2 align-items-center" aria-label="Страницы">
+                <a class="btn btn-outline-secondary" th:if="${flightsPage.hasPrevious()}"
+                   th:href="@{/admin/flights(page=${flightsPage.number - 1})}">Назад</a>
+                <a class="btn btn-outline-secondary" th:if="${flightsPage.hasNext()}"
+                   th:href="@{/admin/flights(page=${flightsPage.number + 1})}">Далее</a>
+            </nav>
+    </main>
+    <div class="modal fade" id="flightModal" tabindex="-1" aria-labelledby="flightModalTitle">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form @submit.prevent="saveFlight()">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="flightModalTitle" x-text="id ? 'Редактировать рейс' : 'Добавить рейс'"></h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <label class="col-md-6">
+                                Номер рейса
+                                <input class="form-control" x-model="form.flightNumber" maxlength="50" required>
+                            </label>
+                            <label class="col-md-6">
+                                Авиакомпания
+                                <input class="form-control" x-model="form.airline" maxlength="100" required>
+                            </label>
+                            <label class="col-md-6">
+                                Город вылета
+                                <input class="form-control" x-model="form.departureCity" maxlength="100" required>
+                            </label>
+                            <label class="col-md-6">
+                                Город прилёта
+                                <input class="form-control" x-model="form.arrivalCity" maxlength="100" required>
+                            </label>
+                            <label class="col-md-6">
+                                Вылет (UTC)
+                                <input class="form-control" x-model="form.departureTime" type="datetime-local" step="1" required>
+                            </label>
+                            <label class="col-md-6">
+                                Прилёт (UTC)
+                                <input class="form-control" x-model="form.arrivalTime" type="datetime-local" step="1" required>
+                            </label>
+                            <label class="col-md-6">
+                                Цена (₽)
+                                <input class="form-control" x-model="form.price" type="number" min="0" step="0.01" required>
+                            </label>
+                            <label class="col-md-6">
+                                Доступные места
+                                <input class="form-control" x-model="form.availableSeats" type="number" min="0" step="1" required>
+                            </label>
+                        </div>
+                        <p class="text-danger mt-3 mb-0" role="alert" x-text="error"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-warning" :disabled="saving">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <script th:inline="javascript">
+        function flightAdminApp() {
+            return {
+                flights: /*[[${flightsPage.content}]]*/ [],
+                id: null,
+                form: {},
+                error: '',
+                saving: false,
+                openFlight(flight) {
+                    this.id = flight?.id ?? null;
+                    this.error = '';
+                    this.form = flight ? {
+                        ...flight,
+                        departureTime: new Date(flight.departureTime).toISOString().slice(0, 19),
+                        arrivalTime: new Date(flight.arrivalTime).toISOString().slice(0, 19)
+                    } : { availableSeats: 50 };
+                },
+                async saveFlight() {
+                    if (this.saving) return;
+                    this.saving = true;
+                    this.error = '';
+                    try {
+                        const response = await fetch('/api/v1/admin/flights' + (this.id ? '/' + this.id : ''), {
+                            method: this.id ? 'PUT' : 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                ...this.form,
+                                departureTime: new Date(this.form.departureTime + 'Z').toISOString(),
+                                arrivalTime: new Date(this.form.arrivalTime + 'Z').toISOString()
+                            })
+                        });
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            const problem = await response.json();
+                            this.error = problem.detail || 'Не удалось сохранить рейс';
+                        }
+                    } catch (error) {
+                        this.error = 'Не удалось сохранить рейс';
+                    } finally {
+                        this.saving = false;
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>

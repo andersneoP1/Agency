@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout('Доступ запрещён | Native Travel', '', ~{::section})}">
+<section class="container text-center py-5">
+    <p class="display-1 fw-bold text-primary">403</p>
+    <h1>Доступ запрещён</h1>
+    <p class="text-muted">У вашей учётной записи нет прав для просмотра этой страницы.</p>
+    <a class="btn btn-primary" th:href="@{/}">На главную</a>
+    <a class="btn btn-outline-primary" th:href="@{/login}">Войти под другой учётной записью</a>
+</section>
+</html>
