@@ -60,7 +60,7 @@
                                 <td>
                                     <small class="text-muted line-clamp-2" th:text="${h.amenities() ?: '—'}">Пляж, Спа</small>
                                 </td>
-                                <td class="text-end">
+                                <td class="text-end"><button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#hotelModal" th:attr="data-id=${h.id()}" @click="editHotel($el.dataset.id)" title="?????????????"><i class="bi bi-pencil"></i></button>
                                     <button class="btn btn-sm btn-outline-danger" th:onclick="'deleteHotel(' + ${h.id()} + ')'" title="Удалить">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -133,10 +133,11 @@
     <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
-    <script>
+    <script th:inline="javascript">
+const hotelData = /*[[${hotels}]]*/ [];
         function hotelAdminApp() {
             return {
-                form: {
+                editingId: null, form: {
                     name: '',
                     country: '',
                     city: '',
@@ -147,12 +148,12 @@
                     description: ''
                 },
                 resetForm() {
-                    this.form = { name: '', country: '', city: '', address: '', stars: 5, amenities: '', imageUrl: '', description: '' };
+                    this.editingId = null; this.form = { name: '', country: '', city: '', address: '', stars: 5, amenities: '', imageUrl: '', description: '' };
                 },
-                async saveHotel() {
+                editHotel(id) { const h = hotelData.find(h => h.id == id); this.editingId = h.id; this.form = {...h}; }, async saveHotel() {
                     try {
-                        const res = await fetch('/api/v1/admin/hotels', {
-                            method: 'POST',
+                        const res = await fetch('/api/v1/admin/hotels' + (this.editingId ? '/' + this.editingId : ''), {
+                            method: this.editingId ? 'PUT' : 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(this.form)
                         });

@@ -1,5 +1,8 @@
 package com.nativetravel.controller.rest;
 
+import com.nativetravel.dto.FlightDto;
+import com.nativetravel.dto.FlightSaveRequest;
+import com.nativetravel.dto.PromoCodeUpdateRequest;
 import com.nativetravel.dto.BookingDto;
 import com.nativetravel.dto.DashboardStatsDto;
 import com.nativetravel.dto.HotelCreateRequest;
@@ -165,6 +168,21 @@ public class AdminController {
     public ResponseEntity<MessageResponse> togglePromoCode(@PathVariable Long id) {
         adminService.togglePromoCode(id);
         return ResponseEntity.ok(MessageResponse.of("Активность промокода изменена"));
+    }
+
+    @PutMapping("/promocodes/{id}")
+    public PromoCodeDto updatePromoCode(@PathVariable Long id, @Valid @RequestBody PromoCodeUpdateRequest request) {
+        return adminService.updatePromoCode(id, request);
+    }
+
+    @PostMapping("/flights")
+    public ResponseEntity<FlightDto> createFlight(@Valid @RequestBody FlightSaveRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminService.saveFlight(null, request));
+    }
+
+    @PutMapping("/flights/{id}")
+    public FlightDto updateFlight(@PathVariable Long id, @Valid @RequestBody FlightSaveRequest request) {
+        return adminService.saveFlight(id, request);
     }
 
     // --- BOOKINGS ---

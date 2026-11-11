@@ -18,7 +18,7 @@
                     <p class="text-muted mb-0">Всего купонов: <strong th:text="${promoCodesPage.totalElements}">4</strong></p>
                 </div>
                 <div>
-                    <button class="btn btn-warning fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#promoModal">
+                    <button class="btn btn-warning fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#promoModal" @click="openPromo()">
                         <i class="bi bi-plus-circle me-1"></i> Создать промокод
                     </button>
                 </div>
@@ -36,7 +36,7 @@
                                 <th style="width: 15%;">Мин. сумма заказа</th>
                                 <th style="width: 15%;">Использований</th>
                                 <th style="width: 15%;">Статус</th>
-                                <th style="width: 10%;" class="text-end">Переключить</th>
+                                <th style="width: 10%;" class="text-end">Действия</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -61,6 +61,9 @@
                                     </span>
                                 </td>
                                 <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            th:attr="data-index=${pStat.index}" @click="openPromo(promos[$el.dataset.index])"
+                                            data-bs-toggle="modal" data-bs-target="#promoModal">Редактировать</button>
                                     <button class="btn btn-sm" th:classappend="${p.active() ? 'btn-outline-warning' : 'btn-outline-success'}"
                                             th:onclick="'togglePromo(' + ${p.id()} + ')'"
                                             th:text="${p.active() ? 'Выключить' : 'Включить'}">
@@ -73,6 +76,12 @@
                 </div>
             </div>
 
+            <nav class="d-flex gap-2 align-items-center" aria-label="Страницы">
+                <a class="btn btn-outline-secondary" th:if="${promoCodesPage.hasPrevious()}"
+                   th:href="@{/admin/promocodes(page=${promoCodesPage.number - 1})}">Назад</a>
+                <a class="btn btn-outline-secondary" th:if="${promoCodesPage.hasNext()}"
+                   th:href="@{/admin/promocodes(page=${promoCodesPage.number + 1})}">Далее</a>
+            </nav>
         </div>
     </main>
 
@@ -81,14 +90,14 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
                 <div class="modal-header border-bottom">
-                    <h5 class="modal-title fw-bold">Новый промокод</h5>
+                    <h5 class="modal-title fw-bold" x-text="id ? 'Редактировать промокод' : 'Новый промокод'"></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form @submit.prevent="createPromo()">
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label small fw-semibold">Кодовое слово (UPPERCASE)</label>
-                            <input type="text" class="form-control font-monospace text-uppercase" x-model="form.code" required placeholder="SUMMER30">
+                            <input type="text" class="form-control font-monospace text-uppercase" x-model="form.code" maxlength="50" required placeholder="SUMMER30">
                         </div>
                         <div class="row g-2 mb-3">
                             <div class="col-6">
@@ -97,7 +106,7 @@
                             </div>
                             <div class="col-6">
                                 <label class="form-label small fw-semibold">Мин. заказ (₽)</label>
-                                <input type="number" class="form-control" x-model="form.minOrderAmount" min="0" required>
+                                <input type="number" class="form-control" x-model="form.minOrderAmount" min="0" step="0.01" required>
                             </div>
                         </div>
                         <div class="row g-2 mb-3">
@@ -105,15 +114,25 @@
                                 <label class="form-label small fw-semibold">Макс. использований</label>
                                 <input type="number" class="form-control" x-model="form.maxUses" min="1" required>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" x-show="!id">
                                 <label class="form-label small fw-semibold">Дней действия</label>
-                                <input type="number" class="form-control" x-model="form.validDays" min="1" required>
+                                <input type="number" class="form-control" x-model="form.validDays" min="1" :required="!id">
                             </div>
                         </div>
                     </div>
+                    <div class="px-3 pb-3" x-show="id" x-cloak>
+                        <label class="form-label d-block">
+                            Действует до (UTC, ISO 8601)
+                            <input class="form-control" x-model="form.validUntil" :required="!!id"
+                                   placeholder="2027-01-01T00:00:00Z">
+                        </label>
+                        <label class="form-check">
+                            <input type="checkbox" class="form-check-input" x-model="form.active"> Активен
+                        </label>
+                    </div>
                     <div class="modal-footer border-top">
                         <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Отмена</button>
-                        <button type="submit" class="btn btn-warning fw-bold rounded-pill px-4">Создать промокод</button>
+                        <button type="submit" class="btn btn-warning fw-bold rounded-pill px-4" :disabled="saving">Сохранить</button>
                     </div>
                 </form>
             </div>
@@ -123,32 +142,38 @@
     <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
-    <script>
+    <script th:inline="javascript">
         function promoAdminApp() {
             return {
-                form: {
-                    code: '',
-                    discountPercent: 15,
-                    minOrderAmount: 20000,
-                    maxUses: 100,
-                    validDays: 60
+                promos: /*[[${promoCodesPage.content}]]*/ [],
+                id: null,
+                saving: false,
+                form: {},
+                openPromo(promo) {
+                    this.id = promo?.id ?? null;
+                    this.form = promo ? { ...promo } : {
+                        code: '', discountPercent: 15, minOrderAmount: 20000, maxUses: 100, validDays: 60
+                    };
                 },
                 async createPromo() {
+                    if (this.saving) return;
+                    this.saving = true;
                     try {
-                        const res = await fetch('/api/v1/admin/promocodes', {
-                            method: 'POST',
+                        const res = await fetch('/api/v1/admin/promocodes' + (this.id ? '/' + this.id : ''), {
+                            method: this.id ? 'PUT' : 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(this.form)
                         });
                         if (res.ok) {
-                            alert('Промокод успешно создан!');
                             window.location.reload();
                         } else {
                             const err = await res.json();
-                            alert(err.detail || 'Ошибка создания промокода');
+                            alert(err.detail || 'Ошибка сохранения промокода');
                         }
                     } catch (e) {
-                        alert('Сетевая ошибка при создании промокода');
+                        alert('Сетевая ошибка при сохранении промокода');
+                    } finally {
+                        this.saving = false;
                     }
                 }
             }

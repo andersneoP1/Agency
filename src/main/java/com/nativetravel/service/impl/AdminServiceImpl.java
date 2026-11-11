@@ -1,5 +1,11 @@
 package com.nativetravel.service.impl;
 
+import com.nativetravel.dto.FlightDto;
+import com.nativetravel.entity.Flight;
+import com.nativetravel.mapper.FlightMapper;
+import com.nativetravel.repository.FlightRepository;
+import com.nativetravel.dto.FlightSaveRequest;
+import com.nativetravel.dto.PromoCodeUpdateRequest;
 import com.nativetravel.dto.BookingDto;
 import com.nativetravel.dto.DashboardStatsDto;
 import com.nativetravel.dto.HotelCreateRequest;
@@ -44,6 +50,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -58,6 +65,8 @@ public class AdminServiceImpl implements AdminService {
     private final TourRepository tourRepository;
     private final HotelRepository hotelRepository;
     private final UserRepository userRepository;
+    private final FlightRepository flightRepository;
+    private final FlightMapper flightMapper;
     private final PromoCodeRepository promoCodeRepository;
     private final ReviewRepository reviewRepository;
 
@@ -286,7 +295,7 @@ public class AdminServiceImpl implements AdminService {
         }
 
         PromoCode promo = PromoCode.builder()
-                .code(request.code().trim().toUpperCase())
+                .code(request.code().trim().toUpperCase(Locale.ROOT))
                 .discountPercent(request.discountPercent())
                 .minOrderAmount(request.minOrderAmount())
                 .maxUses(request.maxUses())
@@ -298,6 +307,52 @@ public class AdminServiceImpl implements AdminService {
         PromoCode saved = promoCodeRepository.save(promo);
         log.info("Admin created promo code: {}", saved.getCode());
         return promoCodeMapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public PromoCodeDto updatePromoCode(Long id, PromoCodeUpdateRequest request) {
+        PromoCode promo = promoCodeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Промокод не найден"));
+        String code = request.code().trim().toUpperCase(Locale.ROOT);
+        if (promoCodeRepository.findByCodeIgnoreCase(code)
+                .filter(existing -> !existing.getId().equals(id)).isPresent()) {
+            throw new BadRequestException("Промокод с таким именем уже существует");
+        }
+
+        promo.setCode(code);
+        promo.setDiscountPercent(request.discountPercent());
+        promo.setMinOrderAmount(request.minOrderAmount());
+        promo.setMaxUses(request.maxUses());
+        promo.setValidUntil(request.validUntil());
+        promo.setActive(request.active());
+        return promoCodeMapper.toDto(promoCodeRepository.save(promo));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FlightDto> getAllFlights(Pageable pageable) {
+        return flightRepository.findAll(pageable).map(flightMapper::toDto);
+    }
+
+    @Override
+    @Transactional
+    public FlightDto saveFlight(Long id, FlightSaveRequest request) {
+        if (!request.arrivalTime().isAfter(request.departureTime())) {
+            throw new BadRequestException("Время прилёта должно быть позже времени вылета");
+        }
+
+        Flight flight = id == null ? new Flight() : flightRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Рейс не найден"));
+        flight.setFlightNumber(request.flightNumber().trim());
+        flight.setAirline(request.airline().trim());
+        flight.setDepartureCity(request.departureCity().trim());
+        flight.setArrivalCity(request.arrivalCity().trim());
+        flight.setDepartureTime(request.departureTime());
+        flight.setArrivalTime(request.arrivalTime());
+        flight.setPrice(request.price());
+        flight.setAvailableSeats(request.availableSeats());
+        return flightMapper.toDto(flightRepository.save(flight));
     }
 
     @Override

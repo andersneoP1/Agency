@@ -94,6 +94,12 @@ public class AdminWebController {
         return "pages/admin/promocodes";
     }
 
+    @GetMapping("/flights")
+    public String flights(@PageableDefault(size = 20, sort = "id") Pageable pageable, Model model) {
+        model.addAttribute("flightsPage", adminService.getAllFlights(pageable));
+        return "pages/admin/flights";
+    }
+
     @GetMapping("/bookings")
     public String bookings(@PageableDefault(size = 20) Pageable pageable, Model model) {
         model.addAttribute("pageTitle", "Все бронирования | Native Travel");

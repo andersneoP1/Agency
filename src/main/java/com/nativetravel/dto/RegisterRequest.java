@@ -36,10 +36,15 @@ public record RegisterRequest(
         String password,
 
         @Schema(description = "Номер телефона", example = "+79991234567")
-        @Size(max = 50, message = "Номер телефона не должен превышать 50 символов")
+        @jakarta.validation.constraints.Pattern(regexp = "(?:\\+7[ ()-]*[346789](?:[ ()-]*[0-9]){9}|\\+375(?:[ ()-]*[0-9]){9}|\\+380[ ()-]*(?:[ ()-]*[0-9]){9}|\\+373[ ()-]*(?:[ ()-]*[0-9]){8}|\\+374[ ()-]*(?:[ ()-]*[0-9]){8}|\\+994[ ()-]*(?:[ ()-]*[0-9]){9}|\\+995[ ()-]*(?:[ ()-]*[0-9]){9}|\\+996[ ()-]*(?:[ ()-]*[0-9]){9}|\\+992[ ()-]*(?:[ ()-]*[0-9]){9}|\\+993[ ()-]*(?:[ ()-]*[0-9]){8}|\\+998[ ()-]*(?:[ ()-]*[0-9]){9})?", message = "Invalid international phone number")
         String phone,
 
         @Schema(description = "Реферальный код пригласившего пользователя (опционально)", example = "REF-ABC1234")
         String referralCode
 ) {
+    public RegisterRequest {
+        if (phone != null) {
+            phone = phone.strip();
+        }
+    }
 }

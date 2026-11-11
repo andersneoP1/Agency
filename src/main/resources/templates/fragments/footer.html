@@ -53,7 +53,7 @@
                                 th:text="#{footer.help_center}">Центр помощи</a></li>
                         <li><a th:href="@{/about}" class="text-secondary text-decoration-none text-hover-light"
                                 th:text="#{footer.contacts}">Контакты</a></li>
-                        <li><a href="/swagger-ui.html" target="_blank"
+                        <li th:if="${#authorization.expression('hasRole(&quot;ADMIN&quot;)')}"><a href="/swagger-ui.html" target="_blank"
                                 class="text-secondary text-decoration-none text-hover-light"
                                 th:text="#{footer.api_docs}">API Документация</a></li>
                         <li><span class="badge bg-secondary">v1.0.0</span></li>

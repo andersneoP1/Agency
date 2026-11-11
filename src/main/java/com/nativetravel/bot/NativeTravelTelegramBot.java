@@ -81,7 +81,7 @@ public class NativeTravelTelegramBot extends TelegramLongPollingBot {
             sendResponse(chatId, getHelpMessage());
         } else if (messageText.startsWith("/tours")) {
             sendResponse(chatId, getHotToursMessage());
-        } else if (messageText.startsWith("/faq")) {
+        } else if (messageText.equalsIgnoreCase("FAQ") || messageText.equalsIgnoreCase("/faq")) {
             sendResponse(chatId, getFaqMessage());
         } else if (messageText.startsWith("/subscribe")) {
             handleSubscribeCommand(chatId);
@@ -158,7 +158,7 @@ public class NativeTravelTelegramBot extends TelegramLongPollingBot {
                 + "Здесь вы можете узнавать о горящих турах, получать консультацию поддержки и привязать свой аккаунт.\n\n"
                 + "Доступные команды:\n"
                 + "✈️ /tours — топ горящих предложений недели\n"
-                + "❓ /faq — ответы на частые вопросы\n"
+                + "❓ FAQ — ответы на частые вопросы\n"
                 + "🔔 /subscribe — подписаться на горящие туры\n"
                 + "🔗 /link <код> — привязать аккаунт сайта (реф. код из профиля)\n"
                 + "ℹ️ /help — справка и контакты службы поддержки\n\n"
@@ -168,7 +168,7 @@ public class NativeTravelTelegramBot extends TelegramLongPollingBot {
     private String getHelpMessage() {
         return "ℹ️ Справка Native Travel Bot (@" + botUsername + "):\n\n"
                 + "• /tours — топ горящих предложений\n"
-                + "• /faq — информация о бронировании и оплате\n"
+                + "• FAQ — информация о бронировании и оплате\n"
                 + "• /subscribe — подписаться на горящие туры\n"
                 + "• /link <код> — привязка Telegram к профилю на сайте\n\n"
                 + "📞 Горячая линия поддержки: 8 (800) 555-35-35\n"

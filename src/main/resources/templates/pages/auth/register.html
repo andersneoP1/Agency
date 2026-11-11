@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" th:lang="${#locale.language}" class="h-100">
 <head th:replace="~{fragments/head :: head('Регистрация')}">
     <title>Регистрация | Native Travel</title>
 </head>
@@ -46,7 +46,7 @@
 
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold">Номер телефона</label>
-                                <input type="tel" x-model="phone" class="form-control" placeholder="+7 (999) 000-00-00">
+                                <input type="tel" autocomplete="tel" x-model="phone" class="form-control" placeholder="+7 999 000-00-00 / +375 29 000-00-00">
                                 <span class="text-danger small" x-text="fieldErrors.phone"></span>
                             </div>
 
@@ -67,7 +67,10 @@
                             </div>
 
                             <div class="form-check mb-4 small text-muted">
-                                <input class="form-check-input" type="checkbox" id="termsCheck" required checked>
+                                <input class="form-check-input" type="checkbox" id="termsCheck" required
+                                       th:attr="data-required-message=#{validation.checkbox.required}"
+                                       oninvalid="this.setCustomValidity(this.checked ? '' : this.dataset.requiredMessage)"
+                                       onchange="this.setCustomValidity('')">
                                 <label class="form-check-label" for="termsCheck">
                                     Я согласен с условиями использования и политикой конфиденциальности
                                 </label>

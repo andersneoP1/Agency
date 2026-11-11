@@ -22,6 +22,10 @@
                th:classappend="${activeTab == 'tours' ? 'btn-warning fw-bold' : 'btn-outline-light'}">
                 <i class="bi bi-compass me-1"></i>Туры
             </a>
+            <a th:href="@{/admin/flights}" class="btn btn-sm rounded-pill"
+               th:classappend="${activeTab == 'flights' ? 'btn-warning fw-bold' : 'btn-outline-light'}">
+                Авиабилеты
+            </a>
             <a th:href="@{/admin/hotels}" class="btn btn-sm rounded-pill" 
                th:classappend="${activeTab == 'hotels' ? 'btn-warning fw-bold' : 'btn-outline-light'}">
                 <i class="bi bi-building me-1"></i>Отели

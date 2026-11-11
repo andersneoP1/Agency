@@ -1,5 +1,8 @@
 package com.nativetravel.service;
 
+import com.nativetravel.dto.FlightDto;
+import com.nativetravel.dto.FlightSaveRequest;
+import com.nativetravel.dto.PromoCodeUpdateRequest;
 import com.nativetravel.dto.BookingDto;
 import com.nativetravel.dto.DashboardStatsDto;
 import com.nativetravel.dto.HotelCreateRequest;
@@ -83,6 +86,12 @@ public interface AdminService {
     /**
      * Создание нового промокода.
      */
+    Page<FlightDto> getAllFlights(Pageable pageable);
+
+    FlightDto saveFlight(Long id, FlightSaveRequest request);
+
+    PromoCodeDto updatePromoCode(Long id, PromoCodeUpdateRequest request);
+
     PromoCodeDto createPromoCode(PromoCodeCreateRequest request);
 
     /**

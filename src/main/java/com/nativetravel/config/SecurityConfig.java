@@ -50,6 +50,10 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
+                            if (!request.getRequestURI().startsWith(request.getContextPath() + "/api/")) {
+                                response.sendRedirect(request.getContextPath() + "/login");
+                                return;
+                            }
                             response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE);
                             response.setCharacterEncoding("UTF-8");
@@ -63,10 +67,11 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                         // Статические ресурсы
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
                         // Swagger UI & OpenAPI
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").hasRole("ADMIN")
                         // Actuator
                         .requestMatchers("/actuator/**").permitAll()
                         // Открытые публичные веб-страницы
@@ -86,7 +91,7 @@ public class SecurityConfig {
                         // Защищенный профиль текущего пользователя
                         .requestMatchers("/api/v1/auth/me").authenticated()
                         // Защищенные разделы приложения (личный кабинет, корзина, бронь)
-                        .requestMatchers("/profile/**", "/cart/**", "/booking/**", "/payment/**").authenticated()
+                        .requestMatchers("/profile/**", "/cart/**", "/booking/**", "/payment/**", "/survey", "/favorites").authenticated()
                         // Админка
                         .requestMatchers("/admin/**", "/api/v1/admin/**").hasRole("ADMIN")
                         // Все остальные запросы

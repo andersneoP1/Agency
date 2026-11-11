@@ -104,7 +104,7 @@ flowchart TD
 ## Быстрый старт
 
 ### Требования
-- Docker & Docker Compose
+- Docker & Docker Compose (Docker должен быть открыт перед запуском)
 - Java 21 (JDK) — *при локальном запуске без Docker*
 - Maven 3.9+ (или комплектный `./mvnw`)
 
