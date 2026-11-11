@@ -53,7 +53,7 @@ public class TourServiceImpl implements TourService {
     public Page<TourDto> getTours(TourFilterRequest filter) {
         log.debug("Fetching tours with filter: {}", filter);
         if (filter == null) {
-            filter = new TourFilterRequest(null, null, null, null, null, null, null, null, null, 0, 20);
+            filter = new TourFilterRequest(null, null, null, null, null, null, null, null, null, null, 0, 20);
         }
 
         Sort.Direction direction = filter.isAscending() ? Sort.Direction.ASC : Sort.Direction.DESC;
@@ -163,6 +163,10 @@ public class TourServiceImpl implements TourService {
 
             if (filter.startDate() != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("startDate"), filter.startDate()));
+            }
+
+            if (filter.endDate() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("endDate"), filter.endDate()));
             }
 
             if (filter.minStars() != null && filter.minStars() > 0) {

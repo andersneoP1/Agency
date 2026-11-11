@@ -69,6 +69,28 @@
                                     </select>
                                 </div>
 
+                                <!-- Tour Dates -->
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold text-secondary"
+                                        th:text="#{catalog.filter.dates}">Даты тура</label>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label text-muted mb-1" style="font-size: 0.75rem;"
+                                                th:text="#{catalog.filter.date.from}">Вылет от</label>
+                                            <input type="date" name="startDate" class="form-control form-control-sm"
+                                                th:value="${filter != null && filter.startDate() != null ? filter.startDate() : ''}"
+                                                onchange="this.form.submit()">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label text-muted mb-1" style="font-size: 0.75rem;"
+                                                th:text="#{catalog.filter.date.to}">Возврат до</label>
+                                            <input type="date" name="endDate" class="form-control form-control-sm"
+                                                th:value="${filter != null && filter.endDate() != null ? filter.endDate() : ''}"
+                                                onchange="this.form.submit()">
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Min / Max Price -->
                                 <div class="mb-3">
                                     <label class="form-label small fw-semibold text-secondary"
@@ -166,13 +188,37 @@
 
                                 <!-- Action Quick Buttons (Favorite & Compare) -->
                                 <div class="position-absolute top-0 end-0 m-3 d-flex gap-2" style="z-index: 2;">
-                                    <!-- Favorite Button -->
-                                    <button class="btn btn-sm btn-light rounded-circle shadow-sm"
-                                        th:attr="data-tour-id=${tour.id()}"
-                                        @click="toggleFavorite($event, Number($el.dataset.tourId))" title="В избранное"
-                                        th:title="#{catalog.card.favorite}">
-                                        <i class="bi bi-heart text-danger"></i>
-                                    </button>
+                                    <!-- Favorite Button with Heartbeat & Break Animations -->
+                                    <div th:x-data="|favoriteHeart({ tourId: ${tour.id()}, initialFav: ${(favoriteTourIds != null and favoriteTourIds.contains(tour.id()))} })|">
+                                        <button class="nt-favorite-btn rounded-circle shadow-sm"
+                                            type="button"
+                                            :class="{ 'is-active': isFav, 'is-shaking': isBreaking }"
+                                            :disabled="isProcessing"
+                                            @click="toggle($event)"
+                                            title="В избранное"
+                                            th:title="#{catalog.card.favorite}"
+                                            :aria-label="isFav ? 'Удалить из избранного' : 'Добавить в избранное'">
+
+                                            <!-- Inactive State (Outline Heart) -->
+                                            <i class="bi bi-heart text-danger nt-heart-icon"
+                                               x-show="!isFav && !isBreaking"></i>
+
+                                            <!-- Active Favorited State (Solid Heart with Heartbeat) -->
+                                            <i class="bi bi-heart-fill text-danger nt-heart-icon"
+                                               x-show="isFav && !isBreaking"
+                                               :class="{ 'nt-anim-heartbeat': isHeartbeating }"></i>
+
+                                            <!-- Ripple burst on heartbeat -->
+                                            <span class="nt-heart-ripple" x-show="isHeartbeating" style="display: none;"></span>
+
+                                            <!-- Breaking Heart State (Two Jagged Halves Split Apart) -->
+                                            <div class="nt-heart-break-container" x-show="isBreaking" style="display: none;">
+                                                <i class="bi bi-heart-fill text-danger nt-heart-half nt-heart-half-left"></i>
+                                                <i class="bi bi-heart-fill text-danger nt-heart-half nt-heart-half-right"></i>
+                                                <span class="nt-heart-crack-flash"></span>
+                                            </div>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Image -->
@@ -265,19 +311,19 @@
                             <ul class="pagination pagination-rounded shadow-sm">
                                 <li class="page-item" th:classappend="${toursPage.first} ? 'disabled'">
                                     <a class="page-link"
-                                        th:href="@{/tours(page=${toursPage.number - 1}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}">
+                                        th:href="@{/tours(page=${toursPage.number - 1}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, startDate=${filter.startDate()}, endDate=${filter.endDate()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}">
                                         <i class="bi bi-chevron-left"></i>
                                     </a>
                                 </li>
                                 <li class="page-item" th:each="i : ${#numbers.sequence(0, toursPage.totalPages - 1)}"
                                     th:classappend="${i == toursPage.number} ? 'active'">
                                     <a class="page-link"
-                                        th:href="@{/tours(page=${i}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}"
+                                        th:href="@{/tours(page=${i}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, startDate=${filter.startDate()}, endDate=${filter.endDate()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}"
                                         th:text="${i + 1}">1</a>
                                 </li>
                                 <li class="page-item" th:classappend="${toursPage.last} ? 'disabled'">
                                     <a class="page-link"
-                                        th:href="@{/tours(page=${toursPage.number + 1}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}">
+                                        th:href="@{/tours(page=${toursPage.number + 1}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, startDate=${filter.startDate()}, endDate=${filter.endDate()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}">
                                         <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
@@ -298,25 +344,7 @@
 
     <script>
         function tourCatalog() {
-            return {
-                async toggleFavorite(event, tourId) {
-                    const btn = event.currentTarget;
-                    try {
-                        const res = await fetch('/api/v1/favorites/tours/' + tourId, { method: 'POST' });
-                        if (res.status === 401) {
-                            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
-                            return;
-                        }
-                        if (res.ok) {
-                            btn.classList.add('btn-danger', 'text-white', 'animate-heart-pop');
-                            btn.classList.remove('btn-light');
-                            setTimeout(() => btn.classList.remove('animate-heart-pop'), 500);
-                        }
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
-            }
+            return {};
         }
     </script>
 </body>

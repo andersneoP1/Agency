@@ -86,14 +86,14 @@ class TourServiceTest {
                 1L, "Жемчужина Антальи", "Роскошный отдых", "Турция", "Белек",
                 new HotelDto(1L, "Rixos Premium", "Турция", "Белек", null, 5, null, null, null),
                 new BigDecimal("89900.00"), LocalDate.now().plusDays(10), LocalDate.now().plusDays(17),
-                7, "Питание, перелет", null, true, 12
-        );
+                7, "Питание, перелет", null, true, 12);
     }
 
     @Test
     @DisplayName("Поиск туров с фильтрацией возвращает страницу DTO")
     void getTours_withValidFilter_returnsPage() {
-        TourFilterRequest filter = new TourFilterRequest("Турция", null, null, null, null, null, null, "price", "asc", 0, 10);
+        TourFilterRequest filter = new TourFilterRequest("Турция", null, null, null, null, null, null, null, "price",
+                "asc", 0, 10);
         Page<Tour> pagedTours = new PageImpl<>(List.of(sampleTour));
 
         when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(pagedTours);
@@ -104,6 +104,24 @@ class TourServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).title()).isEqualTo("Жемчужина Антальи");
+    }
+
+    @Test
+    @DisplayName("Поиск туров с фильтрацией по диапазону дат startDate и endDate")
+    void getTours_withDateRangeFilter_returnsPage() {
+        LocalDate start = LocalDate.now().plusDays(5);
+        LocalDate end = LocalDate.now().plusDays(20);
+        TourFilterRequest filter = new TourFilterRequest(
+                null, null, null, null, start, end, null, null, "price", "asc", 0, 10);
+        Page<Tour> pagedTours = new PageImpl<>(List.of(sampleTour));
+
+        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(pagedTours);
+        when(tourMapper.toDto(sampleTour)).thenReturn(sampleDto);
+
+        Page<TourDto> result = tourService.getTours(filter);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
     }
 
     @Test

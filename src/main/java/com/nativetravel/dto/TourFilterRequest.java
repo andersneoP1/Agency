@@ -27,6 +27,10 @@ public record TourFilterRequest(
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate startDate,
 
+        @Schema(description = "Дата возвращения / окончания до", example = "2026-06-30")
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate endDate,
+
         @Schema(description = "Минимальная звездность отеля (1-5)", example = "4")
         Integer minStars,
 

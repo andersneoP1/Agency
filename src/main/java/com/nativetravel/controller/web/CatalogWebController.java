@@ -41,7 +41,8 @@ public class CatalogWebController {
     @GetMapping("/tours")
     public String tours(
             @ModelAttribute("filter") TourFilterRequest filter,
-            Model model
+            Model model,
+            Principal principal
     ) {
         Locale locale = LocaleContextHolder.getLocale();
         TourFilterRequest searchFilter = filter;
@@ -52,6 +53,7 @@ public class CatalogWebController {
                     currencyService.toBaseRubles(filter.minPrice(), locale),
                     currencyService.toBaseRubles(filter.maxPrice(), locale),
                     filter.startDate(),
+                    filter.endDate(),
                     filter.minStars(),
                     filter.hotOfferOnly(),
                     filter.sortBy(),
@@ -66,6 +68,15 @@ public class CatalogWebController {
         model.addAttribute("toursPage", toursPage);
         model.addAttribute("countries", tourService.getAvailableCountries());
         model.addAttribute("filter", filter);
+
+        if (principal != null) {
+            List<Long> favoriteTourIds = favoriteService.getUserFavorites(principal.getName(), Pageable.unpaged())
+                    .getContent().stream().map(TourDto::id).toList();
+            model.addAttribute("favoriteTourIds", favoriteTourIds);
+        } else {
+            model.addAttribute("favoriteTourIds", Collections.emptyList());
+        }
+
         return "pages/catalog/tours";
     }
 

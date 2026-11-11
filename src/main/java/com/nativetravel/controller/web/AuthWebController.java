@@ -3,13 +3,17 @@ package com.nativetravel.controller.web;
 import com.nativetravel.util.CookieUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -68,12 +72,24 @@ public class AuthWebController {
     }
 
     @Operation(summary = "Выход из системы (Web)", description = "Удаляет авторизационные cookie и перенаправляет на главную")
-    @PostMapping("/logout")
-    public String logout(HttpServletResponse response) {
+    @RequestMapping(value = "/logout", method = {RequestMethod.GET, RequestMethod.POST})
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
+        SecurityContextHolder.clearContext();
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
         ResponseCookie delAccess = CookieUtils.deleteAccessCookie();
         ResponseCookie delRefresh = CookieUtils.deleteRefreshCookie();
+        ResponseCookie delRefreshRoot = ResponseCookie.from(CookieUtils.REFRESH_TOKEN_COOKIE, "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
         response.addHeader(HttpHeaders.SET_COOKIE, delAccess.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, delRefresh.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, delRefreshRoot.toString());
         return "redirect:/?logout=true";
     }
 }

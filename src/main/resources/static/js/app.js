@@ -411,3 +411,266 @@ document.addEventListener('DOMContentLoaded', () => {
  }); }
  document.addEventListener('DOMContentLoaded',()=>{init();new MutationObserver(init).observe(document.body,{childList:true,subtree:true});});
 })();
+
+// ========================================================
+// GLOBAL PAGE TRANSITION LOADER (SMOOTH CROSS-PAGE)
+// ========================================================
+(() => {
+    let failSafeTimeout = null;
+    let arrivalTimer = null;
+
+    function getLoader() {
+        let loader = document.getElementById('globalPageLoader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.id = 'globalPageLoader';
+            loader.className = 'nt-page-loader';
+            loader.setAttribute('role', 'status');
+            loader.setAttribute('aria-live', 'polite');
+            loader.setAttribute('aria-hidden', 'true');
+            loader.innerHTML = `
+                <div class="nt-loader-content">
+                    <div class="nt-loader-spinner">
+                        <i class="bi bi-compass nt-loader-icon"></i>
+                    </div>
+                </div>
+            `;
+            const parent = document.body || document.documentElement;
+            if (parent) {
+                parent.appendChild(loader);
+            }
+        }
+        return loader;
+    }
+
+    function showLoader() {
+        const loader = getLoader();
+        if (!loader) return;
+        clearTimeout(failSafeTimeout);
+        clearTimeout(arrivalTimer);
+        loader.setAttribute('aria-hidden', 'false');
+        loader.classList.add('is-active');
+
+        // Fail-safe: auto-hide after 6s in case navigation is cancelled or slow
+        failSafeTimeout = setTimeout(() => {
+            hideLoader();
+        }, 6000);
+    }
+
+    function hideLoader() {
+        clearTimeout(failSafeTimeout);
+        clearTimeout(arrivalTimer);
+        document.documentElement.classList.remove('nt-is-transitioning');
+        const loader = document.getElementById('globalPageLoader');
+        if (loader) {
+            loader.classList.remove('is-active');
+            loader.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    window.showPageLoader = showLoader;
+    window.hidePageLoader = hideLoader;
+
+    // Handle cross-page arrival transition
+    function finishArrivalTransition() {
+        try {
+            if (sessionStorage.getItem('nt_transition') === '1') {
+                sessionStorage.removeItem('nt_transition');
+                const loader = getLoader();
+                if (loader) {
+                    loader.classList.add('is-active');
+                    loader.setAttribute('aria-hidden', 'false');
+                }
+                clearTimeout(arrivalTimer);
+                // Duration of 1 second (1000ms)
+                arrivalTimer = setTimeout(() => {
+                    hideLoader();
+                }, 1000);
+                return;
+            }
+        } catch (e) {}
+        hideLoader();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', finishArrivalTransition);
+    } else {
+        finishArrivalTransition();
+    }
+
+    // Hide loader only if page is restored from bfcache (Back/Forward navigation)
+    window.addEventListener('pageshow', (event) => {
+        if (event && event.persisted) {
+            try { sessionStorage.removeItem('nt_transition'); } catch (err) {}
+            hideLoader();
+        }
+    });
+
+    // Hide on Escape key
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            try { sessionStorage.removeItem('nt_transition'); } catch (err) {}
+            hideLoader();
+        }
+    });
+
+    // Trigger transition immediately on click for any internal navigation link
+    document.addEventListener('click', (event) => {
+        // Only primary mouse button without modifier keys
+        if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+            return;
+        }
+
+        // Never trigger from chat widget
+        if (event.target.closest('.chat-window-card') || event.target.closest('.chat-widget-trigger')) {
+            return;
+        }
+
+        const link = event.target.closest('a[href]');
+        if (!link) return;
+
+        // Skip non-navigational links
+        if (link.target === '_blank' || link.hasAttribute('download') || link.dataset.bsToggle || link.hasAttribute('data-no-transition') || link.closest('[data-no-transition]')) {
+            return;
+        }
+
+        const rawHref = link.getAttribute('href');
+        if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('javascript:') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:')) {
+            return;
+        }
+
+        // Compare target URL with current URL
+        try {
+            const targetUrl = new URL(link.href, window.location.origin);
+            if (targetUrl.origin !== window.location.origin) {
+                return;
+            }
+
+            // If navigating to the exact same URL (pathname + search), ignore
+            const isSamePage = targetUrl.pathname === window.location.pathname &&
+                               targetUrl.search === window.location.search;
+            if (isSamePage) {
+                return;
+            }
+
+            // Immediately mark transition and activate overlay
+            try {
+                sessionStorage.setItem('nt_transition', '1');
+            } catch (err) {}
+            showLoader();
+        } catch (e) {
+            // Ignore malformed URLs
+        }
+    }, true);
+
+    // Also trigger on full-page GET form submissions (e.g. search / catalog filter)
+    document.addEventListener('submit', (event) => {
+        // Skip if event was prevented or cancelled (e.g. Alpine.js @submit.prevent or JS handlers)
+        if (event.defaultPrevented) return;
+
+        const form = event.target;
+        if (!form || form.tagName !== 'FORM') return;
+
+        // Never trigger from chat widget or components marked with data-no-transition
+        if (form.closest('.chat-window-card') || form.closest('.chat-widget-trigger') || form.closest('[data-no-transition]') || form.hasAttribute('data-no-transition')) {
+            return;
+        }
+
+        // Skip forms handled by Alpine or HTMX
+        if (form.hasAttribute('hx-post') || form.hasAttribute('hx-get') || form.hasAttribute('hx-trigger') ||
+            form.hasAttribute('@submit') || form.hasAttribute('x-on:submit') ||
+            form.hasAttribute('@submit.prevent') || form.hasAttribute('x-on:submit.prevent')) {
+            return;
+        }
+
+        if (form.target === '_blank') return;
+
+        // Only full-page GET forms with an explicit method="get"
+        const rawMethod = form.getAttribute('method');
+        if (!rawMethod || rawMethod.toLowerCase() !== 'get') {
+            return;
+        }
+
+        const action = form.getAttribute('action');
+        if (!action || action.startsWith('#') || action.startsWith('javascript:') || action.startsWith('/api/') || action.startsWith('api/')) {
+            return;
+        }
+
+        try {
+            sessionStorage.setItem('nt_transition', '1');
+        } catch (err) {}
+        showLoader();
+    }, false);
+})();
+
+// ========================================================
+// REUSABLE ALPINE.JS COMPONENT: FAVORITE HEART BUTTON
+// ========================================================
+window.favoriteHeart = function(config) {
+    return {
+        tourId: config.tourId,
+        isFav: !!config.initialFav,
+        isHeartbeating: false,
+        isBreaking: false,
+        isProcessing: false,
+
+        async toggle(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            if (this.isProcessing) return;
+            this.isProcessing = true;
+
+            const nextState = !this.isFav;
+
+            if (nextState) {
+                // --- ADD TO FAVORITE (HEARTBEAT) ---
+                this.isFav = true;
+                this.isHeartbeating = true;
+
+                try {
+                    const res = await fetch('/api/v1/favorites/tours/' + this.tourId, { method: 'POST' });
+                    if (res.status === 401) {
+                        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                        return;
+                    }
+                    if (!res.ok) {
+                        throw new Error('Failed to add favorite');
+                    }
+                } catch (e) {
+                    console.error('Error adding to favorites:', e);
+                    this.isFav = false;
+                } finally {
+                    setTimeout(() => {
+                        this.isHeartbeating = false;
+                        this.isProcessing = false;
+                    }, 650);
+                }
+            } else {
+                // --- REMOVE FROM FAVORITE (BREAKING HEART) ---
+                this.isBreaking = true;
+
+                try {
+                    const res = await fetch('/api/v1/favorites/tours/' + this.tourId, { method: 'DELETE' });
+                    if (res.status === 401) {
+                        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                        return;
+                    }
+                    if (!res.ok) {
+                        throw new Error('Failed to remove favorite');
+                    }
+                    setTimeout(() => {
+                        this.isFav = false;
+                        this.isBreaking = false;
+                        this.isProcessing = false;
+                    }, 520);
+                } catch (e) {
+                    console.error('Error removing from favorites:', e);
+                    this.isBreaking = false;
+                    this.isProcessing = false;
+                }
+            }
+        }
+    };
+};

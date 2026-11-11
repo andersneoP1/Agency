@@ -2,9 +2,13 @@ package com.nativetravel.config;
 
 import com.nativetravel.security.JwtAuthenticationFilter;
 import com.nativetravel.security.RateLimitFilter;
+import com.nativetravel.util.CookieUtils;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -12,10 +16,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * Основная конфигурация Spring Security для Native Travel.
@@ -43,7 +49,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**", "/ws/**", "/actuator/**")
+                        .ignoringRequestMatchers("/api/**", "/ws/**", "/actuator/**", "/logout")
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -96,6 +102,32 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**", "/api/v1/admin/**").hasRole("ADMIN")
                         // Все остальные запросы
                         .anyRequest().permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                        .logoutSuccessUrl("/?logout=true")
+                        .addLogoutHandler((request, response, authentication) -> {
+                            SecurityContextHolder.clearContext();
+                            HttpSession session = request.getSession(false);
+                            if (session != null) {
+                                session.invalidate();
+                            }
+                            ResponseCookie delAccess = CookieUtils.deleteAccessCookie();
+                            ResponseCookie delRefresh = CookieUtils.deleteRefreshCookie();
+                            ResponseCookie delRefreshRoot = ResponseCookie.from(CookieUtils.REFRESH_TOKEN_COOKIE, "")
+                                    .httpOnly(true)
+                                    .path("/")
+                                    .maxAge(0)
+                                    .sameSite("Strict")
+                                    .build();
+                            response.addHeader(HttpHeaders.SET_COOKIE, delAccess.toString());
+                            response.addHeader(HttpHeaders.SET_COOKIE, delRefresh.toString());
+                            response.addHeader(HttpHeaders.SET_COOKIE, delRefreshRoot.toString());
+                        })
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID", CookieUtils.ACCESS_TOKEN_COOKIE, CookieUtils.REFRESH_TOKEN_COOKIE)
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)

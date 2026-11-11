@@ -76,20 +76,22 @@
              if (area) area.scrollTop = area.scrollHeight;
          }
      }"
+     id="chatWidget"
+     data-no-transition="true"
      class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
     
     <!-- Chat Window -->
     <div x-show="open"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 transform scale-95"
-         x-transition:enter-end="opacity-100 transform scale-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100 transform scale-100"
-         x-transition:leave-end="opacity-0 transform scale-95"
-         class="card shadow-lg border-0 mb-3" style="width: 360px; height: 460px; display: none;">
+         x-transition:enter="nt-chat-enter"
+         x-transition:enter-start="nt-chat-enter-start"
+         x-transition:enter-end="nt-chat-enter-end"
+         x-transition:leave="nt-chat-leave"
+         x-transition:leave-start="nt-chat-leave-start"
+         x-transition:leave-end="nt-chat-leave-end"
+         class="card border-0 mb-3 chat-window-card" style="display: none;">
         
         <!-- Header -->
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2 px-3">
+        <div class="card-header text-white d-flex justify-content-between align-items-center py-2 px-3">
             <div class="d-flex align-items-center gap-2">
                 <div class="rounded-circle bg-success pulse" style="width: 10px; height: 10px;"></div>
                 <div>
@@ -105,14 +107,14 @@
             <template x-for="(msg, index) in messages" :key="index">
                 <div class="d-flex" :class="msg.sender === 'user' ? 'justify-content-end' : 'justify-content-start'">
                     <div :class="msg.sender === 'user' ? 'bg-primary text-white' : 'bg-white text-dark shadow-sm'"
-                         class="p-2 px-3 rounded-3 small" style="max-width: 82%; word-break: break-word; white-space: pre-line;">
+                         class="p-2 px-3 rounded-3 small chat-msg-anim" style="max-width: 82%; word-break: break-word; white-space: pre-line;">
                         <span x-text="msg.text"></span>
                     </div>
                 </div>
             </template>
             <div x-show="isSending" style="display: none;">
                 <div class="d-flex justify-content-start">
-                    <div class="bg-white text-muted shadow-sm p-2 px-3 rounded-3 small">
+                    <div class="bg-white text-muted shadow-sm p-2 px-3 rounded-3 small chat-msg-anim">
                         <span class="spinner-grow spinner-grow-sm me-1 text-warning"></span>
                         <span th:text="#{chat.typing}">Печатает ответ...</span>
                     </div>
@@ -122,7 +124,7 @@
 
         <!-- Footer / Input -->
         <div class="card-footer bg-white border-top p-2">
-            <form @submit.prevent="sendMessage()" class="d-flex gap-2">
+            <form @submit.prevent="sendMessage()" class="d-flex gap-2" action="javascript:void(0)" data-no-transition="true">
                 <input type="text" x-model="input" class="form-control form-control-sm"
                        placeholder="Напишите вопрос..." th:placeholder="#{chat.placeholder}" required :disabled="isSending">
                 <button type="submit" class="btn btn-warning btn-sm" :disabled="isSending">
@@ -135,10 +137,14 @@
     <!-- Toggle Button -->
     <div class="d-flex justify-content-end">
         <button @click="open = !open; if (open) $nextTick(() => scrollToBottom());" type="button"
-                class="chat-widget-trigger btn btn-warning rounded-circle shadow-lg d-flex align-items-center justify-content-center"
-                style="width: 58px; height: 58px;" title="Онлайн-чат поддержки">
-            <i class="bi bi-chat-dots-fill fs-4 text-dark" x-show="!open"></i>
-            <i class="bi bi-x-lg fs-4 text-dark" x-show="open" style="display: none;"></i>
+                class="chat-widget-trigger btn btn-warning rounded-circle shadow-lg d-flex align-items-center justify-content-center position-relative"
+                :class="{ 'is-open': open }"
+                style="width: 60px; height: 60px;" title="Онлайн-чат поддержки">
+            <div class="chat-trigger-icon-wrap" :class="{ 'is-active': open }">
+                <i class="bi bi-chat-dots-fill fs-4 text-dark chat-icon-chat"></i>
+                <i class="bi bi-x-lg fs-4 chat-icon-close"></i>
+            </div>
+            <span class="chat-trigger-ping" x-show="!open"></span>
         </button>
     </div>
 </div>

@@ -172,9 +172,20 @@
                                 <i class="bi bi-lightning-charge me-2"></i><span th:text="#{common.book}">Забронировать</span>
                             </a>
                             <div class="d-flex gap-2 mt-2">
-                                <button class="btn btn-outline-danger w-50 rounded-pill fw-semibold"
+                                <button class="btn btn-outline-danger w-50 rounded-pill fw-semibold position-relative"
+                                        :class="{ 'is-shaking': isBreaking }"
+                                        :disabled="isProcessing"
                                         @click="toggleFavorite()">
-                                    <i class="bi bi-heart me-1" :class="isFav ? 'bi-heart-fill' : 'bi-heart'"></i>
+                                    <span class="d-inline-flex align-items-center justify-content-center me-1 position-relative" style="width: 20px; height: 20px; vertical-align: middle;">
+                                        <i class="bi bi-heart nt-heart-icon text-danger" x-show="!isFav && !isBreaking"></i>
+                                        <i class="bi bi-heart-fill nt-heart-icon text-danger" x-show="isFav && !isBreaking" :class="{ 'nt-anim-heartbeat': isHeartbeating }"></i>
+                                        <span class="nt-heart-ripple" x-show="isHeartbeating" style="display: none;"></span>
+                                        <div class="nt-heart-break-container" x-show="isBreaking" style="display: none;">
+                                            <i class="bi bi-heart-fill text-danger nt-heart-half nt-heart-half-left"></i>
+                                            <i class="bi bi-heart-fill text-danger nt-heart-half nt-heart-half-right"></i>
+                                            <span class="nt-heart-crack-flash"></span>
+                                        </div>
+                                    </span>
                                     <span x-text="isFav ? 'В избранном' : 'В избранное'"></span>
                                 </button>
                                 <button class="btn btn-outline-secondary w-50 rounded-pill fw-semibold"
@@ -217,6 +228,9 @@
             return {
                 tourId: config.tourId,
                 isFav: !!config.isFavorite,
+                isHeartbeating: false,
+                isBreaking: false,
+                isProcessing: false,
                 async addToCart(id, type) {
                     const tid = id || this.tourId;
                     try {
@@ -242,18 +256,47 @@
                     }
                 },
                 async toggleFavorite() {
-                    try {
-                        const method = this.isFav ? 'DELETE' : 'POST';
-                        const res = await fetch('/api/v1/favorites/tours/' + this.tourId, { method: method });
-                        if (res.status === 401) {
-                            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
-                            return;
+                    if (this.isProcessing) return;
+                    this.isProcessing = true;
+                    const nextFav = !this.isFav;
+                    if (nextFav) {
+                        this.isFav = true;
+                        this.isHeartbeating = true;
+                        try {
+                            const res = await fetch('/api/v1/favorites/tours/' + this.tourId, { method: 'POST' });
+                            if (res.status === 401) {
+                                window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                                return;
+                            }
+                            if (!res.ok) throw new Error();
+                        } catch (e) {
+                            console.error(e);
+                            this.isFav = false;
+                        } finally {
+                            setTimeout(() => {
+                                this.isHeartbeating = false;
+                                this.isProcessing = false;
+                            }, 650);
                         }
-                        if (res.ok) {
-                            this.isFav = !this.isFav;
+                    } else {
+                        this.isBreaking = true;
+                        try {
+                            const res = await fetch('/api/v1/favorites/tours/' + this.tourId, { method: 'DELETE' });
+                            if (res.status === 401) {
+                                window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                                return;
+                            }
+                            if (!res.ok) throw new Error();
+                            setTimeout(() => {
+                                this.isFav = false;
+                                this.isBreaking = false;
+                                this.isProcessing = false;
+                            }, 520);
+                        } catch (e) {
+                            console.error(e);
+                            this.isBreaking = false;
+                            this.isProcessing = false;
                         }
-                    } catch (e) {
-                        console.error(e);
                     }
                 }
             }

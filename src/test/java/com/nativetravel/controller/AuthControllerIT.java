@@ -199,6 +199,26 @@ class AuthControllerIT {
     }
 
     @Test
+    @DisplayName("IT: Web-выход через POST /logout очищает cookie и перенаправляет на главную")
+    void webLogout_post_clearsCookiesAndRedirects() throws Exception {
+        mockMvc.perform(post("/logout"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string("Location", containsString("/?logout=true")))
+                .andExpect(cookie().maxAge(CookieUtils.ACCESS_TOKEN_COOKIE, 0))
+                .andExpect(cookie().maxAge(CookieUtils.REFRESH_TOKEN_COOKIE, 0));
+    }
+
+    @Test
+    @DisplayName("IT: Web-выход через GET /logout очищает cookie и перенаправляет на главную")
+    void webLogout_get_clearsCookiesAndRedirects() throws Exception {
+        mockMvc.perform(get("/logout"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string("Location", containsString("/?logout=true")))
+                .andExpect(cookie().maxAge(CookieUtils.ACCESS_TOKEN_COOKIE, 0))
+                .andExpect(cookie().maxAge(CookieUtils.REFRESH_TOKEN_COOKIE, 0));
+    }
+
+    @Test
     @DisplayName("IT: Запрос /api/v1/auth/me без токена возвращает 401 или 403")
     void getMe_unauthorized() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))

@@ -15,6 +15,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Immediate Page Transition State Detector -->
+    <script>
+        try {
+            if (sessionStorage.getItem('nt_transition') === '1') {
+                document.documentElement.classList.add('nt-is-transitioning');
+            }
+        } catch (e) {}
+    </script>
     <!-- AOS (Animate On Scroll) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
 
