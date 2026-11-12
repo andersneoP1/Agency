@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/head :: head(${pageTitle ?: 'Тур'})}">
     <title>Форма тура | Native Travel</title>
 </head>
-<body class="d-flex flex-column h-100 bg-light" 
+<body class="admin-page d-flex flex-column h-100 bg-light"
       x-data="tourFormApp(window.TOUR_FORM_CONFIG)">
 
     <!-- Admin Navbar -->
@@ -12,7 +12,7 @@
     <!-- Main Container -->
     <main class="flex-shrink-0 pb-5">
         <div class="container">
-            
+
             <!-- Breadcrumb -->
             <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="breadcrumb">

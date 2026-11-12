@@ -1,62 +1,212 @@
+# Seven business services; Config Server, Eureka and Gateway are infrastructure.
+x-service: &service
+  restart: on-failure
+  environment: &environment
+    CONFIG_SERVER_URL: http://config-server:8888
+    EUREKA_URL: http://discovery-server:8761/eureka/
+    PORT: 8080
+    SPRING_PROFILES_ACTIVE: distributed
+    SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/nativetravel_db
+    SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-nativetravel_user}
+    SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-nativetravel_secret_pass}
+    SPRING_MAIL_HOST: mailhog
+    SPRING_MAIL_PORT: 1025
+    JWT_SECRET: ${JWT_SECRET:-c3VwZXJTZWNyZXRUb2tlbktleUZvck5hdGl2ZVRyYXZlbEFwcGxpY2F0aW9uMjAyNlNlY3VyZUtleUZvcldlYg==}
+    INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-local-development-service-token}
+    APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+    TELEGRAM_BOT_ENABLED: 'false'
+  depends_on:
+    postgres:
+      condition: service_healthy
+    config-server:
+      condition: service_healthy
+    discovery-server:
+      condition: service_healthy
+  healthcheck:
+    test: [CMD, wget, -q, --spider, http://localhost:8080/actuator/health/readiness]
+    interval: 10s
+    timeout: 5s
+    start_period: 90s
+    retries: 12
+  logging: &logging
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: '3'
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: nativetravel-postgres
     restart: always
     environment:
       POSTGRES_DB: nativetravel_db
       POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME:-nativetravel_user}
       POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-nativetravel_secret_pass}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    ports: ['127.0.0.1:${POSTGRES_HOST_PORT:-15432}:5432']
+    volumes: [postgres_data:/var/lib/postgresql/data]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nativetravel_user -d nativetravel_db"]
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   mailhog:
     image: mailhog/mailhog:v1.0.1
-    container_name: nativetravel-mailhog
-    restart: always
-    ports:
-      - "1025:1025" # SMTP
-      - "8025:8025" # Web UI
+    ports: ['127.0.0.1:1025:1025', '127.0.0.1:8025:8025']
 
   adminer:
     image: adminer:4.8.1
-    container_name: nativetravel-adminer
-    restart: always
-    ports:
-      - "8088:8080"
+    ports: ['127.0.0.1:8088:8080']
     depends_on:
       postgres:
         condition: service_healthy
 
-  app:
+  config-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+      args:
+        MODULE: config-server
+    environment:
+      CONFIG_REPOSITORY: file:/config-repo
+    volumes: ['./config-repo:/config-repo:ro']
+    ports: ['127.0.0.1:8888:8888']
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://localhost:8888/actuator/health]
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 20
+    logging: *logging
+
+  discovery-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+      args:
+        MODULE: discovery-server
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+    ports: ['127.0.0.1:8761:8761']
+    depends_on:
+      config-server:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://localhost:8761/actuator/health]
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 20
+    logging: *logging
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+      args:
+        MODULE: gateway
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_URL: http://discovery-server:8761/eureka/
+    ports: ['8080:8080']
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://localhost:8080/actuator/health/readiness]
+      interval: 10s
+      timeout: 5s
+      start_period: 40s
+      retries: 15
+    logging: *logging
+
+  identity:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+      args:
+        MODULE: identity
+    ports: ['127.0.0.1:8081:8080']
+
+  catalog:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+      args:
+        MODULE: catalog
+    ports: ['127.0.0.1:8082:8080']
+
+  booking:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+      args:
+        MODULE: booking
+    ports: ['127.0.0.1:8083:8080']
+
+  payments:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+      args:
+        MODULE: payments
+    ports: ['127.0.0.1:8084:8080']
+
+  marketing:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+      args:
+        MODULE: marketing
+    ports: ['127.0.0.1:8085:8080']
+
+  communications:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+      args:
+        MODULE: communications
+    ports: ['127.0.0.1:8086:8080']
+
+  support:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+      args:
+        MODULE: support
+    ports: ['127.0.0.1:8087:8080']
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    ports: ['127.0.0.1:9090:9090']
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on: [gateway, identity, catalog, booking, payments, marketing, communications, support]
+    logging: *logging
+
+  legacy-web:
+    profiles: [legacy]
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: nativetravel-app
-    restart: on-failure
-    ports:
-      - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/nativetravel_db
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-nativetravel_user}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-nativetravel_secret_pass}
-      SPRING_MAIL_HOST: mailhog
-      SPRING_MAIL_PORT: 1025
-      JWT_SECRET: ${JWT_SECRET:-c3VwZXJTZWNyZXRUb2tlbktleUZvck5hdGl2ZVRyYXZlbEFwcGxpY2F0aW9uMjAyNlNlY3VyZUtleUZvcldlYg==}
-      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-900000}
-      JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-604800000}
-      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      <<: *environment
+      SPRING_PROFILES_ACTIVE: dev
+    ports: ['127.0.0.1:8090:8080']
     depends_on:
       postgres:
         condition: service_healthy
 
 volumes:
   postgres_data:
+  prometheus_data:

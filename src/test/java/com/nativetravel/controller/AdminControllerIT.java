@@ -27,8 +27,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("local")
+@org.springframework.transaction.annotation.Transactional
 @DisplayName("Интеграционные тесты панели администратора (Phase 5)")
 class AdminControllerIT {
+
+    @org.junit.jupiter.api.BeforeAll
+    static void synchronizeH2IdentityCounters(@Autowired org.springframework.jdbc.core.JdbcTemplate jdbc) {
+        // PostgreSQL seed migrations use setval; H2's compatibility function does
+        // not advance IDENTITY columns after inserting explicit seed identifiers.
+        for (String table : java.util.List.of("hotels", "tours", "promo_codes")) {
+            Long next = jdbc.queryForObject("SELECT COALESCE(MAX(id), 0) + 1 FROM " + table, Long.class);
+            jdbc.execute("ALTER TABLE " + table + " ALTER COLUMN id RESTART WITH " + next);
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;

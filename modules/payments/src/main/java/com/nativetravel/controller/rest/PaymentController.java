@@ -3,7 +3,7 @@ package com.nativetravel.controller.rest;
 import com.nativetravel.dto.PaymentRequest;
 import com.nativetravel.dto.PaymentResponse;
 import com.nativetravel.exception.UnauthorizedException;
-import com.nativetravel.service.BookingService;
+import com.nativetravel.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -30,7 +30,7 @@ import java.security.Principal;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final BookingService bookingService;
+    private final PaymentService paymentService;
 
     @Operation(summary = "Провести оплату бронирования", description = "Эмулирует обработку платежа, переводит бронь в PAID, генерирует QR и PDF ваучер")
     @ApiResponses({
@@ -48,7 +48,7 @@ public class PaymentController {
         if (principal == null) {
             throw new UnauthorizedException("Требуется авторизация для оплаты");
         }
-        PaymentResponse response = bookingService.processPayment(request, principal.getName());
+        PaymentResponse response = paymentService.processPayment(request, principal.getName());
         return ResponseEntity.ok(response);
     }
 }

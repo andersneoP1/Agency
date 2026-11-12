@@ -1,59 +1,35 @@
 # Native Travel — Платформа туристического агентства
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://adoptium.net/)
-[![Spring Boot 3.3.5](https://img.shields.io/badge/Spring%20Boot-3.3.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot 3.3.13](https://img.shields.io/badge/Spring%20Boot-3.3.13-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![Coverage](https://img.shields.io/badge/JaCoCo%20Coverage-71.5%25-green.svg)](target/site/jacoco/index.html)
 [![Tests](https://img.shields.io/badge/Tests-98%20passed-success.svg)](target/surefire-reports)
 [![Docker](https://img.shields.io/badge/Docker-Multi--stage-blue.svg)](Dockerfile)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-Монолитное production-ready веб-приложение для туристического агентства **"Native Travel"**: поиск и фильтрация туров и авиабилетов, корзина и многоэтапное бронирование, имитация оплаты (СБП, банковская карта, криптовалюта, наличные), генерация билетов с динамическим QR-кодом (ZXing) и PDF-ваучером (OpenPDF), отправка подтверждений на email (MailHog), личный кабинет путешественника с историей и избранным, опросник рекомендаций, реферальная система и промокоды, интерактивный чат поддержки на WebSocket с эскалацией, Telegram-бот, многоязычный интерфейс (ru/en/kk/be) и полнофункциональная панель администратора с аналитикой Chart.js.
+Платформа на Spring Cloud с семью бизнес-сервисами для туристического агентства **"Native Travel"**: поиск и фильтрация туров и авиабилетов, корзина и многоэтапное бронирование, имитация оплаты (СБП, банковская карта, криптовалюта, наличные), генерация билетов с динамическим QR-кодом (ZXing) и PDF-ваучером (OpenPDF), отправка подтверждений на email (MailHog), личный кабинет путешественника с историей и избранным, опросник рекомендаций, реферальная система и промокоды, интерактивный чат поддержки на WebSocket с эскалацией, Telegram-бот, многоязычный интерфейс (ru/en/kk/be) и полнофункциональная панель администратора с аналитикой Chart.js.
 
 ---
 
 ## Архитектура системы
 
-```mermaid
-flowchart TD
-    Client["Пользователь (Браузер / Telegram Bot)"]
-    
-    subgraph App["Native Travel Monolith (Spring Boot 3.3.x, Java 21)"]
-        UI["UI Layer\n(Thymeleaf, Bootstrap 5.3, Alpine.js, htmx)"]
-        Security["Security & Rate Limiting\n(Spring Security, JWT HMAC-SHA512, Bucket4j)"]
-        Controllers["Controllers\n(Web MVC + REST API /api/v1/*)"]
-        Services["Service Layer (Interfaces & Impl)\n(Business Logic, Transaction Management)"]
-        Mappers["MapStruct Mappers & DTOs (Records)"]
-        Integrations["Integrations\n(ZXing QR, OpenPDF Voucher, TelegramBot)"]
-        Repositories["Data Layer\n(Spring Data JPA & Hibernate)"]
-    end
-    
-    subgraph Infra["Инфраструктура (Docker Compose)"]
-        Postgres[("PostgreSQL 16\n(Flyway Migrations V1-V3)")]
-        MailHog["MailHog\n(SMTP 1025 / Web UI 8025)"]
-        Adminer["Adminer\n(DB Web Client :8088)"]
-    end
+Стандартный Docker Compose запускает семь бизнес-сервисов:
 
-    Client -->|HTTP / WebSocket STOMP| UI
-    Client -->|REST API + Bearer JWT| Controllers
-    UI --> Controllers
-    Controllers --> Security
-    Security --> Services
-    Services --> Mappers
-    Services --> Integrations
-    Services --> Repositories
-    Repositories --> Postgres
-    Services --> MailHog
-```
+| Сервис | Назначение | Порт хоста |
+|---|---|---|
+| identity | Пользователи, JWT, профиль | 8081 |
+| catalog | Туры, отели, рейсы, сравнение, отзывы | 8082 |
+| booking | Корзина и бронирования | 8083 |
+| payments | Имитация оплаты | 8084 |
+| marketing | Промокоды, рефералы, опросы, избранное | 8085 |
+| communications | Email, подписки, QR, PDF | 8086 |
+| support | Поддержка, STOMP/SockJS | 8087 |
 
-### Архитектурные принципы
-- **Слоистая архитектура:** `Controller -> Service -> Repository`.
-- **Инкапсуляция сущностей:** JPA-сущности не покидают сервисный слой; наружу отдаются неизменяемые Java `record` DTO.
-- **Инъекция зависимостей:** Исключительно через конструкторы (Lombok `@RequiredArgsConstructor`). Никаких `@Autowired` на полях.
-- **Обработка ошибок:** Единый `@RestControllerAdvice GlobalExceptionHandler` с форматом RFC 7807 (`ProblemDetail`), содержащий поля `type`, `title`, `status`, `detail`, `instance` и карту ошибок валидации.
-- **Rate Limiting:** Защита эндпоинтов авторизации и сброса пароля с помощью `Bucket4j` (IP-based token bucket).
-- **Чистота кода:** Отсутствие закомментированного кода, `System.out.println` (только `SLF4J`), секреты вынесены в переменные окружения.
+Gateway (:8080) маршрутизирует API-запросы к сервисам. Eureka Server (:8761) хранит реестр сервисов, Config Server (:8888) загружает настройки из `config-repo`. Prometheus собирает метрики Actuator.
 
----
+Сервисы пока используют общую схему PostgreSQL и библиотеку JPA; межсервисные вызовы не образуют общую транзакцию. Подробности: [CLOUD-ARCHITECTURE.md](CLOUD-ARCHITECTURE.md).
+
+Thymeleaf-интерфейс, административные экраны и Telegram сохранены в `modules/application` как приложение совместимости `legacy-web`. Оно запускается отдельно; перенос интерфейса на BFF ещё не выполнен. Описанные ниже экраны доступны на http://localhost:8090 после запуска клиента.
 
 ## Карта экранов (13 основных экранов системы)
 
@@ -103,42 +79,53 @@ flowchart TD
 
 ## Быстрый старт
 
-### Требования
-- Docker & Docker Compose (Docker должен быть открыт перед запуском)
-- Java 21 (JDK) — *при локальном запуске без Docker*
-- Maven 3.9+ (или комплектный `./mvnw`)
+Нужны Docker Desktop и Docker Compose. Для сборки вне Docker нужны JDK 21 и Maven Wrapper. Команды выполняются из корня проекта в PowerShell.
 
-### 1. Запуск через Docker Compose (Рекомендуемый способ)
+### Запуск микросервисов
 
-```bash
-# Клонируйте репозиторий
-git clone https://github.com/andersneoP1/Agency.git
-cd .\Agency\
+```powershell
+# Только если собственного .env ещё нет
+Copy-Item .env.example .env
 
-# Создайте файл переменных окружения
-cp .env.example .env
-
-# Запустите весь стек (PostgreSQL + MailHog + Adminer + Native Travel App)
 docker compose up -d --build
+docker compose ps
 ```
 
-Приложение и сервисы будут доступны по адресам:
-- **Native Travel Web:** [http://localhost:8080](http://localhost:8080)
-- **Swagger UI:** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-- **OpenAPI v3 JSON:** [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
-- **MailHog (почтовый перехватчик):** [http://localhost:8025](http://localhost:8025)
-- **Adminer (веб-интерфейс к БД):** [http://localhost:8088](http://localhost:8088)
-- **Actuator Health:** [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
+В `.env` задаются параметры БД, `JWT_SECRET` и `INTERNAL_SERVICE_TOKEN`. Дождитесь статуса `healthy`; инициализация бизнес-сервисов может занять несколько минут.
 
-### 2. Локальный запуск для разработки
+| Интерфейс | Адрес |
+|---|---|
+| Swagger UI с выбором семи сервисов | http://localhost:8080/swagger-ui.html |
+| Eureka — реестр сервисов | http://localhost:8761 |
+| Config Server — настройки catalog | http://localhost:8888/catalog/distributed |
+| Prometheus — сбор метрик | http://localhost:9090/targets |
+| MailHog — письма | http://localhost:8025 |
+| Adminer — БД | http://localhost:8088 |
+| Gateway Health | http://localhost:8080/actuator/health |
 
-```bash
-# Запустите только инфраструктурные сервисы
-docker compose up -d postgres mailhog adminer
+В Eureka ожидаются семь бизнес-сервисов и Gateway. В Swagger выберите сервис из списка определений; JWT для защищённых запросов указывается через **Authorize**.
+Индивидуальные Swagger UI доступны на портах 8081–8087 по `/swagger-ui.html`, спецификации — по `/v3/api-docs`. Через Gateway спецификации доступны по `/openapi/identity`, `/openapi/catalog` и аналогичным адресам остальных сервисов.
 
-# Запустите приложение Spring Boot с профилем local
-./mvnw clean spring-boot:run
+### Запуск браузерного клиента
+
+```powershell
+docker compose --profile legacy up -d --build legacy-web
 ```
+
+Откройте **http://localhost:8090** — каталог, корзина, личный кабинет и административные экраны. На порту 8080 работает Gateway со Swagger.
+Клиент использует сохранённую реализацию приложения и общую БД; он пока не является отдельным клиентом микросервисного API. Установка npm не требуется: страницы рендерятся Thymeleaf.
+
+### Остановка и диагностика
+
+```powershell
+docker compose logs --tail=100 config-server gateway payments
+docker compose --profile legacy down --remove-orphans
+```
+
+Остановка без `-v` сохраняет данные БД. При переходе со старого стека остановите `nativetravel-app`, если он занимает порт 8080.
+PostgreSQL доступен с хоста на `localhost:15432` (переопределяется через `POSTGRES_HOST_PORT`); внутри Compose используется `postgres:5432`.
+Для Java-приложений вне Docker задайте `SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:15432/nativetravel_db`.
+Запуск отдельных JAR описан в [CLOUD-ARCHITECTURE.md](CLOUD-ARCHITECTURE.md).
 
 ---
 

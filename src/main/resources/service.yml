@@ -1,0 +1,31 @@
+spring:
+  config:
+    import: "configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:distributed}
+  messages:
+    basename: messages
+    encoding: UTF-8
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+app:
+  distributed: true
+  internal-token: ${INTERNAL_SERVICE_TOKEN:local-development-service-token}
+  jwt:
+    secret: ${JWT_SECRET:c3VwZXJTZWNyZXRUb2tlbktleUZvck5hdGl2ZVRyYXZlbEFwcGxpY2F0aW9uMjAyNlNlY3VyZUtleUZvcldlYg==}
+    expiration-ms: ${JWT_EXPIRATION_MS:900000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+  telegram:
+    enabled: false
+
+springdoc:
+  paths-to-match: /api/**
+  swagger-ui:
+    path: /swagger-ui.html
+
+server:
+  forward-headers-strategy: framework

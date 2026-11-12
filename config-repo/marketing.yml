@@ -1,0 +1,5 @@
+server:
+  port: ${PORT:8085}
+info:
+  app:
+    domain: marketing

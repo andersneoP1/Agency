@@ -1,4 +1,7 @@
 spring:
+  cloud:
+    config:
+      enabled: false
   application:
     name: native-travel
   profiles:
@@ -51,3 +54,7 @@ app:
     enabled: ${TELEGRAM_BOT_ENABLED:true}
     bot-username: ${TELEGRAM_BOT_USERNAME:NativeTravelSuppport_bot}
     bot-token: ${TELEGRAM_BOT_TOKEN:9255986103:AAExBRvhrYePSat2xM6E9RJXIIaBoWZurtE}
+
+eureka:
+  client:
+    enabled: false

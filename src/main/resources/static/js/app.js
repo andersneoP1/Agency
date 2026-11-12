@@ -232,10 +232,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize AOS animations
     if (typeof AOS !== 'undefined') {
         AOS.init({
-            duration: 650,
+            duration: 300,
+            disable: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
             once: true,
             offset: 40,
-            easing: 'ease-out-cubic'
+            easing: 'ease-out'
         });
     }
 

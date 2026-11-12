@@ -154,6 +154,12 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ProblemDetail handleDownstream(org.springframework.web.server.ResponseStatusException ex) {
+        return ProblemDetail.forStatusAndDetail(ex.getStatusCode(),
+                ex.getReason() == null ? "Downstream request failed" : ex.getReason());
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGenericException(Exception ex, HttpServletRequest request) {
         log.error("Unhandled internal server error on {}: {}", request.getRequestURI(), ex.getMessage(), ex);

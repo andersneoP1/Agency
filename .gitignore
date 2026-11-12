@@ -38,6 +38,7 @@ target/
 *.pem
 *.key
 *.p12
+design.md
 
 ### Node & Caches ###
 node_modules/

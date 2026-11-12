@@ -1,0 +1,27 @@
+server:
+  port: ${PORT:8080}
+spring:
+  application:
+    name: gateway
+  config:
+    import: "configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
+  main:
+    web-application-type: reactive
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: identity
+        url: /openapi/identity
+      - name: catalog
+        url: /openapi/catalog
+      - name: booking
+        url: /openapi/booking
+      - name: payments
+        url: /openapi/payments
+      - name: marketing
+        url: /openapi/marketing
+      - name: communications
+        url: /openapi/communications
+      - name: support
+        url: /openapi/support

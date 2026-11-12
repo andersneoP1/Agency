@@ -1,0 +1,9 @@
+.git
+.idea
+.cache
+**/target
+.env
+.env.*
+*.log
+uploads
+logs

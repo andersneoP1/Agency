@@ -1,0 +1,5 @@
+server:
+  port: ${PORT:8086}
+info:
+  app:
+    domain: communications

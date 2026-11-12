@@ -19,10 +19,11 @@ public class OpenApiConfig {
     private static final String SECURITY_SCHEME_NAME = "BearerAuth";
 
     @Bean
-    public OpenAPI nativeTravelOpenAPI() {
+    public OpenAPI nativeTravelOpenAPI(@org.springframework.beans.factory.annotation.Value("${spring.application.name:native-travel}") String serviceName) {
         return new OpenAPI()
+                .servers(java.util.List.of(new io.swagger.v3.oas.models.servers.Server().url("/")))
                 .info(new Info()
-                        .title("Native Travel API")
+                        .title("Native Travel / " + serviceName)
                         .description("REST API туристического агентства Native Travel: туры, авиабилеты, бронирование, оплата и профиль.")
                         .version("1.0.0")
                         .contact(new Contact()

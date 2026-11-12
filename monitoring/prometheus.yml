@@ -1,0 +1,36 @@
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: native-travel
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['config-server:8888']
+        labels:
+          service: config-server
+      - targets: ['discovery-server:8761']
+        labels:
+          service: discovery-server
+      - targets: ['gateway:8080']
+        labels:
+          service: gateway
+      - targets: ['identity:8080']
+        labels:
+          service: identity
+      - targets: ['catalog:8080']
+        labels:
+          service: catalog
+      - targets: ['booking:8080']
+        labels:
+          service: booking
+      - targets: ['payments:8080']
+        labels:
+          service: payments
+      - targets: ['marketing:8080']
+        labels:
+          service: marketing
+      - targets: ['communications:8080']
+        labels:
+          service: communications
+      - targets: ['support:8080']
+        labels:
+          service: support

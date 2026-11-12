@@ -28,10 +28,15 @@ jobs:
           cache: maven
 
       - name: Verify build with Maven
+        env:
+          TELEGRAM_BOT_ENABLED: 'false'
         run: ./mvnw clean verify -B
 
   docker:
-    name: Build & Push Docker Image
+    name: Build & Push ${{ matrix.service }}
+    strategy:
+      matrix:
+        service: [identity, catalog, booking, payments, marketing, communications, support, config-server, discovery-server, gateway]
     needs: test
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
@@ -57,19 +62,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: Dockerfile.cloud
+          build-args: MODULE=${{ matrix.service }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Trigger Render Deploy Hook
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
-        env:
-          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-        run: |
-          curl -X POST "$RENDER_DEPLOY_HOOK_URL"

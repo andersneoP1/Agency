@@ -14,6 +14,7 @@ RUN ./mvnw dependency:go-offline -B || true
 
 # Copy source code and build
 COPY src ./src
+COPY modules ./modules
 RUN ./mvnw clean package -DskipTests
 
 # Stage 2: Runtime
@@ -25,7 +26,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
 # Copy built artifact from builder
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=builder /app/modules/application/target/*.jar app.jar
 
 EXPOSE 8080
 

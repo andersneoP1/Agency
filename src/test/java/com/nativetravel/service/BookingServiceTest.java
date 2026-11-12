@@ -74,6 +74,12 @@ class BookingServiceTest {
     @InjectMocks
     private BookingServiceImpl bookingService;
 
+    @Mock
+    private PaymentService remotePaymentService;
+
+    @InjectMocks
+    private com.nativetravel.service.impl.PaymentServiceImpl paymentService;
+
     private User sampleUser;
     private Tour sampleTour;
     private Booking sampleBooking;
@@ -130,7 +136,7 @@ class BookingServiceTest {
         when(pdfVoucherService.generateBookingVoucherPdf(any(Booking.class))).thenReturn(new byte[]{4, 5, 6});
         when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        PaymentResponse response = bookingService.processPayment(request, "client@example.com");
+        PaymentResponse response = paymentService.processPayment(request, "client@example.com");
 
         assertThat(response).isNotNull();
         assertThat(response.status()).isEqualTo(BookingStatus.PAID);

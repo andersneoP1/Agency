@@ -1,0 +1,5 @@
+server:
+  port: ${PORT:8082}
+info:
+  app:
+    domain: catalog

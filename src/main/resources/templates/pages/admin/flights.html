@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ru" class="h-100">
 <head th:replace="~{fragments/head :: head('Авиабилеты | Native Travel')}"></head>
-<body class="d-flex flex-column h-100 bg-light" x-data="flightAdminApp()">
+<body class="admin-page d-flex flex-column h-100 bg-light" x-data="flightAdminApp()">
     <div th:replace="~{fragments/admin-navbar :: admin-navbar('flights')}"></div>
     <main class="container pb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">

@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/head :: head(${pageTitle ?: 'Промокоды'})}">
     <title>Промокоды | Native Travel</title>
 </head>
-<body class="d-flex flex-column h-100 bg-light" x-data="promoAdminApp()">
+<body class="admin-page d-flex flex-column h-100 bg-light" x-data="promoAdminApp()">
 
     <!-- Admin Navbar -->
     <div th:replace="~{fragments/admin-navbar :: admin-navbar('promocodes')}"></div>
