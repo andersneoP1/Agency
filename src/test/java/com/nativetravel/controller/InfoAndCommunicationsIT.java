@@ -86,6 +86,30 @@ class InfoAndCommunicationsIT {
     }
 
     @Test
+    @DisplayName("POST /api/v1/subscriptions/hot-offers через HTMX форму возвращает HTML подтверждение (201)")
+    void subscribeHotOffers_htmxForm_returnsHtml() throws Exception {
+        mockMvc.perform(post("/api/v1/subscriptions/hot-offers")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .header("HX-Request", "true")
+                        .param("email", "htmx.subscriber@example.com"))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(content().string(containsString("alert-success")));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/subscriptions/hot-offers через HTMX форму с некорректным email возвращает 400 HTML")
+    void subscribeHotOffers_htmxForm_invalidEmail_returns400Html() throws Exception {
+        mockMvc.perform(post("/api/v1/subscriptions/hot-offers")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .header("HX-Request", "true")
+                        .param("email", "invalid-email-address"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(content().string(containsString("alert-danger")));
+    }
+
+    @Test
     @WithMockUser(username = "admin@nativetravel.local", roles = {"ADMIN"})
     @DisplayName("POST /api/v1/admin/broadcast-hot-offers запускает рассылку администратором")
     void broadcastHotOffers_admin_returns200() throws Exception {
