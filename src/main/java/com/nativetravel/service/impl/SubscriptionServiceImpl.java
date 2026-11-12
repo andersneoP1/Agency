@@ -41,24 +41,26 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         if (email != null && !email.isBlank()) {
             Optional<HotOfferSubscription> existing = subscriptionRepository.findByEmailIgnoreCase(email);
+            HotOfferSubscription target;
             if (existing.isPresent()) {
-                HotOfferSubscription sub = existing.get();
-                if (!sub.isActive()) {
-                    sub.setActive(true);
-                    subscriptionRepository.save(sub);
+                target = existing.get();
+                if (!target.isActive()) {
+                    target.setActive(true);
+                    target = subscriptionRepository.save(target);
                     log.info("Reactivated hot offer subscription for email: {}", email);
                 }
-                return toDto(sub);
+            } else {
+                HotOfferSubscription newSub = HotOfferSubscription.builder()
+                        .email(email)
+                        .telegramChatId(chatId)
+                        .active(true)
+                        .build();
+                target = subscriptionRepository.save(newSub);
+                log.info("Created new hot offer subscription for email: {}", email);
             }
 
-            HotOfferSubscription newSub = HotOfferSubscription.builder()
-                    .email(email)
-                    .telegramChatId(chatId)
-                    .active(true)
-                    .build();
-            HotOfferSubscription saved = subscriptionRepository.save(newSub);
-            log.info("Created new hot offer subscription for email: {}", email);
-            return toDto(saved);
+            sendSubscriptionWelcomeEmail(email);
+            return toDto(target);
         }
 
         // Subscription via telegramChatId only
@@ -128,6 +130,26 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         log.info("Successfully broadcast hot offers to {} subscribers", sentCount);
         return sentCount;
+    }
+
+    private void sendSubscriptionWelcomeEmail(String email) {
+        try {
+            List<Tour> hotTours = tourRepository.findByHotOfferTrue();
+            StringBuilder content = new StringBuilder();
+            if (hotTours != null && !hotTours.isEmpty()) {
+                for (Tour tour : hotTours) {
+                    content.append("• ").append(tour.getTitle())
+                            .append(" (").append(tour.getCountry()).append(", ").append(tour.getCity()).append(")")
+                            .append(" — от ").append(tour.getPrice()).append(" ₽ (длительность: ")
+                            .append(tour.getDurationDays()).append(" дн.)\n");
+                }
+            } else {
+                content.append("В ближайшее время мы пришлем вам самые горячие скидки на новые направления!\n");
+            }
+            emailService.sendHotOffersNewsletter(email, content.toString());
+        } catch (Exception e) {
+            log.error("Failed to send welcome hot offers newsletter to {}: {}", email, e.getMessage());
+        }
     }
 
     private SubscriptionDto toDto(HotOfferSubscription sub) {

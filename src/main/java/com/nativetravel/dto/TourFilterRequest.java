@@ -34,10 +34,13 @@ public record TourFilterRequest(
         @Schema(description = "Минимальная звездность отеля (1-5)", example = "4")
         Integer minStars,
 
+        @Schema(description = "Точная звездность отеля (1-5)", example = "4")
+        Integer stars,
+
         @Schema(description = "Только горящие предложения", example = "false")
         Boolean hotOfferOnly,
 
-        @Schema(description = "Поле сортировки: price, startDate, durationDays", example = "price")
+        @Schema(description = "Поле сортировки: price, startDate, durationDays, hotel.stars", example = "price")
         String sortBy,
 
         @Schema(description = "Направление сортировки: asc, desc", example = "asc")
@@ -58,18 +61,57 @@ public record TourFilterRequest(
     }
 
     public String getSortField() {
-        if ("startDate".equalsIgnoreCase(sortBy) || "durationDays".equalsIgnoreCase(sortBy)) {
-            return sortBy;
+        if (sortBy == null || sortBy.isBlank()) {
+            return "price";
+        }
+        String lower = sortBy.trim().toLowerCase();
+        if (lower.startsWith("star") || lower.contains("hotel.stars") || lower.contains("hotel_stars")) {
+            return "hotel.stars";
+        }
+        if (lower.startsWith("duration")) {
+            return "durationDays";
+        }
+        if (lower.startsWith("startdate") || lower.startsWith("date")) {
+            return "startDate";
         }
         return "price";
     }
 
     public boolean isAscending() {
-        return sortDirection == null || !"desc".equalsIgnoreCase(sortDirection);
+        if (sortBy != null && !sortBy.isBlank()) {
+            String lower = sortBy.trim().toLowerCase();
+            if (lower.endsWith("_desc") || lower.endsWith("-desc") || lower.endsWith(":desc")) {
+                return false;
+            }
+            if (lower.endsWith("_asc") || lower.endsWith("-asc") || lower.endsWith(":asc")) {
+                return true;
+            }
+        }
+        if ("desc".equalsIgnoreCase(sortDirection)) {
+            return false;
+        }
+        if ("asc".equalsIgnoreCase(sortDirection)) {
+            return true;
+        }
+        if (sortBy != null && !sortBy.isBlank()) {
+            String lower = sortBy.trim().toLowerCase();
+            if (lower.startsWith("star")) {
+                return false;
+            }
+            if (lower.startsWith("duration")) {
+                return false;
+            }
+        }
+        return true;
     }
 
+    public Integer getEffectiveStars() {
+        return stars != null ? stars : minStars;
+    }
+
+    @Override
     public Integer stars() {
-        return minStars;
+        return getEffectiveStars();
     }
 
     public Boolean hotOffer() {

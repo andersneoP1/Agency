@@ -72,7 +72,9 @@ public class SubscriptionController {
                         <span>%s</span>
                     </div>
                     """.formatted(errorMsg);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.TEXT_HTML).body(html);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .contentType(MediaType.valueOf("text/html;charset=UTF-8"))
+                        .body(html);
             }
             throw new BadRequestException("Необходимо указать корректный email или telegram chat id для подписки");
         }
@@ -89,7 +91,9 @@ public class SubscriptionController {
                     <span>%s</span>
                 </div>
                 """.formatted(successMsg);
-            return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.TEXT_HTML).body(html);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .contentType(MediaType.valueOf("text/html;charset=UTF-8"))
+                    .body(html);
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);

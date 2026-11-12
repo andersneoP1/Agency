@@ -61,18 +61,38 @@
                 </div>
 
                 <!-- Col 4: Newsletter -->
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-4 col-md-6" id="footerNewsletterSection">
                     <h6 class="text-white fw-bold mb-3" th:text="#{footer.subscribe}">Подписка на горящие туры</h6>
                     <p class="text-secondary small" th:text="#{footer.subscribe.desc}">Получайте эксклюзивные скидки и
                         предложения первыми.</p>
-                    <form action="/api/v1/subscriptions/hot-offers" method="post"
-                        hx-post="/api/v1/subscriptions/hot-offers" hx-swap="outerHTML" class="d-flex gap-2">
-                        <input type="email" name="email"
-                            class="form-control form-control-sm bg-dark text-white border-secondary"
-                            th:placeholder="#{footer.subscribe.placeholder}" placeholder="Введите ваш email" required>
-                        <button type="submit" class="btn btn-warning btn-sm fw-semibold"
-                            th:text="#{footer.subscribe.btn}">Подписаться</button>
+                    <form id="footerNewsletterForm" action="/api/v1/subscriptions/hot-offers" method="post"
+                        class="nt-newsletter-form">
+                        <div class="d-flex gap-2">
+                            <input type="email" id="footerNewsletterEmail" name="email"
+                                class="form-control form-control-sm bg-dark text-white border-secondary nt-newsletter-input"
+                                th:placeholder="#{footer.subscribe.placeholder}" placeholder="Введите ваш email" required autocomplete="email">
+                            <button type="submit" id="footerNewsletterBtn" class="btn btn-warning btn-sm fw-semibold nt-newsletter-btn text-nowrap d-flex align-items-center justify-content-center">
+                                <span class="nt-newsletter-btn-text" th:text="#{footer.subscribe.btn}">Подписаться</span>
+                                <span class="spinner-border spinner-border-sm d-none ms-1" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                        <div id="footerNewsletterError" class="nt-newsletter-error text-danger small mt-2 d-none"
+                            th:data-default-error="#{footer.subscribe.invalid_email}"
+                            th:text="#{footer.subscribe.invalid_email}">Пожалуйста, введите корректный email</div>
                     </form>
+
+                    <!-- Animated Success Card (replaces form smoothly) -->
+                    <div id="footerNewsletterSuccess" class="nt-subscribe-success d-none" role="status" aria-live="polite">
+                        <div class="d-flex align-items-center gap-3 p-3 rounded-3 nt-success-box">
+                            <div class="nt-success-icon-wrap flex-shrink-0">
+                                <i class="bi bi-check-circle-fill nt-success-check"></i>
+                            </div>
+                            <div class="nt-success-text-wrap">
+                                <div class="fw-bold text-white small" th:text="#{footer.subscribe.success}">Вы успешно подписаны на горящие туры!</div>
+                                <div class="text-secondary" style="font-size: 0.78rem;" th:text="#{footer.subscribe.success_hint}">Мы отправили подтверждение на вашу почту</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -125,6 +145,125 @@
         <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
         <!-- Canvas Confetti -->
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+        <!-- Newsletter Subscription Handler with Animation -->
+        <script>
+            (function () {
+                function initFooterNewsletter() {
+                    const form = document.getElementById('footerNewsletterForm');
+                    if (!form || form.dataset.bound === 'true') return;
+                    form.dataset.bound = 'true';
+
+                    form.addEventListener('submit', async function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const emailInput = document.getElementById('footerNewsletterEmail');
+                        const submitBtn = document.getElementById('footerNewsletterBtn');
+                        const spinner = submitBtn ? submitBtn.querySelector('.spinner-border') : null;
+                        const errorContainer = document.getElementById('footerNewsletterError');
+                        const successContainer = document.getElementById('footerNewsletterSuccess');
+
+                        const email = emailInput ? emailInput.value.trim() : '';
+                        if (!email || !email.includes('@')) {
+                            if (emailInput) {
+                                emailInput.classList.add('is-invalid', 'nt-shake');
+                                setTimeout(() => emailInput.classList.remove('nt-shake'), 600);
+                            }
+                            if (errorContainer) {
+                                errorContainer.classList.remove('d-none');
+                            }
+                            return;
+                        }
+
+                        if (emailInput) {
+                            emailInput.disabled = true;
+                            emailInput.classList.remove('is-invalid');
+                        }
+                        if (submitBtn) submitBtn.disabled = true;
+                        if (spinner) spinner.classList.remove('d-none');
+                        if (errorContainer) errorContainer.classList.add('d-none');
+
+                        try {
+                            const formData = new URLSearchParams();
+                            formData.append('email', email);
+
+                            const response = await fetch('/api/v1/subscriptions/hot-offers', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'HX-Request': 'true'
+                                },
+                                body: formData.toString()
+                            });
+
+                            if (response.ok) {
+                                form.classList.add('nt-fade-out');
+                                setTimeout(() => {
+                                    form.classList.add('d-none');
+                                    if (successContainer) {
+                                        successContainer.classList.remove('d-none');
+                                        successContainer.classList.add('nt-subscribe-success');
+
+                                        if (typeof window.confetti === 'function') {
+                                            try {
+                                                window.confetti({
+                                                    particleCount: 45,
+                                                    spread: 60,
+                                                    origin: { y: 0.88, x: 0.8 },
+                                                    colors: ['#ffc107', '#22c55e', '#38bdf8', '#ffffff'],
+                                                    disableForReducedMotion: true
+                                                });
+                                            } catch (cErr) {}
+                                        }
+                                    }
+                                }, 240);
+                            } else {
+                                const errorText = await response.text();
+                                if (emailInput) {
+                                    emailInput.disabled = false;
+                                    emailInput.classList.add('is-invalid', 'nt-shake');
+                                    setTimeout(() => emailInput.classList.remove('nt-shake'), 600);
+                                }
+                                if (submitBtn) submitBtn.disabled = false;
+                                if (spinner) spinner.classList.add('d-none');
+                                if (errorContainer) {
+                                    let msg = errorContainer.getAttribute('data-default-error') || 'Пожалуйста, введите корректный email';
+                                    try {
+                                        const parser = new DOMParser();
+                                        const doc = parser.parseFromString(errorText, 'text/html');
+                                        const span = doc.querySelector('span');
+                                        if (span && span.textContent.trim()) {
+                                            msg = span.textContent.trim();
+                                        }
+                                    } catch (pErr) {}
+                                    errorContainer.textContent = msg;
+                                    errorContainer.classList.remove('d-none');
+                                }
+                            }
+                        } catch (networkErr) {
+                            if (emailInput) {
+                                emailInput.disabled = false;
+                                emailInput.classList.add('is-invalid', 'nt-shake');
+                                setTimeout(() => emailInput.classList.remove('nt-shake'), 600);
+                            }
+                            if (submitBtn) submitBtn.disabled = false;
+                            if (spinner) spinner.classList.add('d-none');
+                            if (errorContainer) {
+                                errorContainer.textContent = 'Ошибка соединения с сервером. Попробуйте позже.';
+                                errorContainer.classList.remove('d-none');
+                            }
+                        }
+                    });
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initFooterNewsletter);
+                } else {
+                    initFooterNewsletter();
+                }
+            })();
+        </script>
     </footer>
 </body>
 

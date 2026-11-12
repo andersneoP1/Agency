@@ -11,6 +11,7 @@ import com.nativetravel.repository.TourRepository;
 import com.nativetravel.repository.UserRepository;
 import com.nativetravel.repository.ViewedTourRepository;
 import com.nativetravel.service.TourService;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -53,11 +54,11 @@ public class TourServiceImpl implements TourService {
     public Page<TourDto> getTours(TourFilterRequest filter) {
         log.debug("Fetching tours with filter: {}", filter);
         if (filter == null) {
-            filter = new TourFilterRequest(null, null, null, null, null, null, null, null, null, null, 0, 20);
+            filter = new TourFilterRequest(null, null, null, null, null, null, null, null, null, null, null, 0, 20);
         }
 
         Sort.Direction direction = filter.isAscending() ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, filter.getSortField());
+        Sort sort = Sort.by(direction, filter.getSortField()).and(Sort.by(Sort.Direction.ASC, "id"));
         Pageable pageable = PageRequest.of(filter.getPageNumber(), filter.getPageSize(), sort);
 
         Specification<Tour> spec = buildSpecification(filter);
@@ -169,8 +170,10 @@ public class TourServiceImpl implements TourService {
                 predicates.add(cb.lessThanOrEqualTo(root.get("endDate"), filter.endDate()));
             }
 
-            if (filter.minStars() != null && filter.minStars() > 0) {
-                predicates.add(cb.greaterThanOrEqualTo(root.join("hotel").get("stars"), filter.minStars()));
+            if (filter.stars() != null && filter.stars() > 0) {
+                predicates.add(cb.equal(root.join("hotel", JoinType.LEFT).get("stars"), filter.stars()));
+            } else if (filter.minStars() != null && filter.minStars() > 0) {
+                predicates.add(cb.greaterThanOrEqualTo(root.join("hotel", JoinType.LEFT).get("stars"), filter.minStars()));
             }
 
             if (Boolean.TRUE.equals(filter.hotOfferOnly())) {

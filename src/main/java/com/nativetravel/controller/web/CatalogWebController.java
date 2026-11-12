@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
@@ -46,15 +47,19 @@ public class CatalogWebController {
     ) {
         Locale locale = LocaleContextHolder.getLocale();
         TourFilterRequest searchFilter = filter;
-        if (filter != null && (filter.minPrice() != null || filter.maxPrice() != null)) {
+        if (filter != null) {
+            Integer effectiveStars = filter.stars() != null ? filter.stars() : filter.minStars();
+            BigDecimal minRubles = filter.minPrice() != null ? currencyService.toBaseRubles(filter.minPrice(), locale) : null;
+            BigDecimal maxRubles = filter.maxPrice() != null ? currencyService.toBaseRubles(filter.maxPrice(), locale) : null;
             searchFilter = new TourFilterRequest(
                     filter.country(),
                     filter.city(),
-                    currencyService.toBaseRubles(filter.minPrice(), locale),
-                    currencyService.toBaseRubles(filter.maxPrice(), locale),
+                    minRubles,
+                    maxRubles,
                     filter.startDate(),
                     filter.endDate(),
                     filter.minStars(),
+                    effectiveStars,
                     filter.hotOfferOnly(),
                     filter.sortBy(),
                     filter.sortDirection(),

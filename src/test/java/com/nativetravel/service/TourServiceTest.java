@@ -16,12 +16,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
@@ -92,7 +94,7 @@ class TourServiceTest {
     @Test
     @DisplayName("Поиск туров с фильтрацией возвращает страницу DTO")
     void getTours_withValidFilter_returnsPage() {
-        TourFilterRequest filter = new TourFilterRequest("Турция", null, null, null, null, null, null, null, "price",
+        TourFilterRequest filter = new TourFilterRequest("Турция", null, null, null, null, null, null, null, null, "price",
                 "asc", 0, 10);
         Page<Tour> pagedTours = new PageImpl<>(List.of(sampleTour));
 
@@ -112,10 +114,82 @@ class TourServiceTest {
         LocalDate start = LocalDate.now().plusDays(5);
         LocalDate end = LocalDate.now().plusDays(20);
         TourFilterRequest filter = new TourFilterRequest(
-                null, null, null, null, start, end, null, null, "price", "asc", 0, 10);
+                null, null, null, null, start, end, null, null, null, "price", "asc", 0, 10);
         Page<Tour> pagedTours = new PageImpl<>(List.of(sampleTour));
 
         when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(pagedTours);
+        when(tourMapper.toDto(sampleTour)).thenReturn(sampleDto);
+
+        Page<TourDto> result = tourService.getTours(filter);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Сортировка price_desc передает поле price и направление DESC в репозиторий")
+    void getTours_withPriceDescSort_passesDescSortToRepository() {
+        TourFilterRequest filter = new TourFilterRequest(
+                null, null, null, null, null, null, null, null, null, "price_desc", null, 0, 10);
+        when(tourRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(sampleTour)));
+        when(tourMapper.toDto(sampleTour)).thenReturn(sampleDto);
+
+        tourService.getTours(filter);
+
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+        verify(tourRepository).findAll(any(Specification.class), captor.capture());
+        Pageable pageable = captor.getValue();
+        Sort.Order priceOrder = pageable.getSort().getOrderFor("price");
+        assertThat(priceOrder).isNotNull();
+        assertThat(priceOrder.getDirection()).isEqualTo(Sort.Direction.DESC);
+    }
+
+    @Test
+    @DisplayName("Сортировка stars_desc передает поле hotel.stars и направление DESC в репозиторий")
+    void getTours_withStarsDescSort_passesHotelStarsDescSortToRepository() {
+        TourFilterRequest filter = new TourFilterRequest(
+                null, null, null, null, null, null, null, null, null, "stars_desc", null, 0, 10);
+        when(tourRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(sampleTour)));
+        when(tourMapper.toDto(sampleTour)).thenReturn(sampleDto);
+
+        tourService.getTours(filter);
+
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+        verify(tourRepository).findAll(any(Specification.class), captor.capture());
+        Pageable pageable = captor.getValue();
+        Sort.Order starsOrder = pageable.getSort().getOrderFor("hotel.stars");
+        assertThat(starsOrder).isNotNull();
+        assertThat(starsOrder.getDirection()).isEqualTo(Sort.Direction.DESC);
+    }
+
+    @Test
+    @DisplayName("Сортировка duration_desc передает поле durationDays и направление DESC в репозиторий")
+    void getTours_withDurationDescSort_passesDurationDescSortToRepository() {
+        TourFilterRequest filter = new TourFilterRequest(
+                null, null, null, null, null, null, null, null, null, "duration_desc", null, 0, 10);
+        when(tourRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(sampleTour)));
+        when(tourMapper.toDto(sampleTour)).thenReturn(sampleDto);
+
+        tourService.getTours(filter);
+
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+        verify(tourRepository).findAll(any(Specification.class), captor.capture());
+        Pageable pageable = captor.getValue();
+        Sort.Order durationOrder = pageable.getSort().getOrderFor("durationDays");
+        assertThat(durationOrder).isNotNull();
+        assertThat(durationOrder.getDirection()).isEqualTo(Sort.Direction.DESC);
+    }
+
+    @Test
+    @DisplayName("Фильтрация по точной звездности stars возвращает найденные туры")
+    void getTours_withExactStarsFilter_returnsMatchingTours() {
+        TourFilterRequest filter = new TourFilterRequest(
+                null, null, null, null, null, null, null, 4, null, "price_asc", null, 0, 10);
+        when(tourRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(sampleTour)));
         when(tourMapper.toDto(sampleTour)).thenReturn(sampleDto);
 
         Page<TourDto> result = tourService.getTours(filter);

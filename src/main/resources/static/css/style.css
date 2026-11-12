@@ -776,6 +776,94 @@ html.nt-is-transitioning .nt-page-loader {
     }
 }
 
+/* ========================================================
+   FOOTER NEWSLETTER SUBSCRIPTION & SUCCESS ANIMATION
+   ======================================================== */
+.nt-newsletter-form {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.nt-newsletter-form.nt-fade-out {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+    pointer-events: none;
+}
+
+.nt-subscribe-success {
+    animation: ntSuccessSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes ntSuccessSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.nt-success-box {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(20, 83, 45, 0.32) 100%);
+    border: 1px solid rgba(74, 222, 128, 0.45);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(34, 197, 94, 0.2);
+    backdrop-filter: blur(8px);
+}
+
+.nt-success-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(34, 197, 94, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid rgba(74, 222, 128, 0.6);
+    animation: ntIconPulse 2.2s infinite ease-in-out 0.5s;
+}
+
+.nt-success-check {
+    font-size: 1.5rem;
+    color: #4ade80;
+    line-height: 1;
+    animation: ntCheckPop 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s both;
+}
+
+@keyframes ntCheckPop {
+    0% {
+        transform: scale(0) rotate(-45deg);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.28) rotate(6deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes ntIconPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 0 9px rgba(74, 222, 128, 0);
+    }
+}
+
+@keyframes nt-shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+.nt-shake {
+    animation: nt-shake 0.45s ease-in-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .nt-chat-enter,
     .nt-chat-leave,
@@ -784,7 +872,12 @@ html.nt-is-transitioning .nt-page-loader {
     .chat-icon-chat,
     .chat-icon-close,
     .chat-trigger-ping,
-    .chat-msg-anim {
+    .chat-msg-anim,
+    .nt-subscribe-success,
+    .nt-success-icon-wrap,
+    .nt-success-check,
+    .nt-shake,
+    .nt-newsletter-form {
         transition: none !important;
         animation: none !important;
         transform: none !important;

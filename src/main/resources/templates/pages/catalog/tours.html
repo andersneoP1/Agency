@@ -112,14 +112,14 @@
                                 <div class="mb-3">
                                     <label class="form-label small fw-semibold text-secondary"
                                         th:text="#{catalog.filter.stars}">Звёздность отеля</label>
-                                    <select name="minStars" class="form-select" onchange="this.form.submit()">
+                                    <select name="stars" class="form-select" onchange="this.form.submit()">
                                         <option value="" th:text="#{catalog.filter.stars.any}">Любая категория</option>
-                                        <option value="5" th:selected="${filter != null && filter.minStars() == 5}">5
+                                        <option value="5" th:selected="${filter != null && filter.stars() == 5}">5
                                             звёзд
                                             ★★★★★</option>
-                                        <option value="4" th:selected="${filter != null && filter.minStars() == 4}">4
+                                        <option value="4" th:selected="${filter != null && filter.stars() == 4}">4
                                             звезды ★★★★</option>
-                                        <option value="3" th:selected="${filter != null && filter.minStars() == 3}">3
+                                        <option value="3" th:selected="${filter != null && filter.stars() == 3}">3
                                             звезды ★★★</option>
                                     </select>
                                 </div>
@@ -141,15 +141,19 @@
                                         th:text="#{catalog.filter.sort}">Сортировка</label>
                                     <select name="sortBy" class="form-select" onchange="this.form.submit()">
                                         <option value="price_asc"
-                                            th:selected="${filter != null && filter.sortBy() == 'price_asc'}"
+                                            th:selected="${filter == null || filter.sortBy() == null || filter.sortBy() == 'price_asc' || (filter.sortBy() == 'price' && filter.isAscending())}"
                                             th:text="#{catalog.filter.sort.price_asc}">Сначала
                                             дешевле</option>
                                         <option value="price_desc"
-                                            th:selected="${filter != null && filter.sortBy() == 'price_desc'}"
+                                            th:selected="${filter != null && (filter.sortBy() == 'price_desc' || (filter.sortBy() == 'price' && !filter.isAscending()))}"
                                             th:text="#{catalog.filter.sort.price_desc}">Сначала
                                             дороже</option>
+                                        <option value="stars_desc"
+                                            th:selected="${filter != null && (filter.sortBy() == 'stars_desc' || filter.sortBy() == 'stars' || filter.sortBy() == 'hotel.stars')}"
+                                            th:text="#{catalog.filter.sort.stars_desc}">По
+                                            звёздности (макс)</option>
                                         <option value="duration_desc"
-                                            th:selected="${filter != null && filter.sortBy() == 'duration_desc'}"
+                                            th:selected="${filter != null && (filter.sortBy() == 'duration_desc' || (filter.sortBy() == 'durationDays' && !filter.isAscending()))}"
                                             th:text="#{catalog.filter.sort.duration}">По
                                             длительности (макс)</option>
                                     </select>
@@ -311,19 +315,19 @@
                             <ul class="pagination pagination-rounded shadow-sm">
                                 <li class="page-item" th:classappend="${toursPage.first} ? 'disabled'">
                                     <a class="page-link"
-                                        th:href="@{/tours(page=${toursPage.number - 1}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, startDate=${filter.startDate()}, endDate=${filter.endDate()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}">
+                                        th:href="@{/tours(page=${toursPage.number - 1}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, startDate=${filter.startDate()}, endDate=${filter.endDate()}, stars=${filter.stars()}, hotOfferOnly=${filter.hotOfferOnly()}, sortBy=${filter.sortBy()})}">
                                         <i class="bi bi-chevron-left"></i>
                                     </a>
                                 </li>
                                 <li class="page-item" th:each="i : ${#numbers.sequence(0, toursPage.totalPages - 1)}"
                                     th:classappend="${i == toursPage.number} ? 'active'">
                                     <a class="page-link"
-                                        th:href="@{/tours(page=${i}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, startDate=${filter.startDate()}, endDate=${filter.endDate()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}"
+                                        th:href="@{/tours(page=${i}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, startDate=${filter.startDate()}, endDate=${filter.endDate()}, stars=${filter.stars()}, hotOfferOnly=${filter.hotOfferOnly()}, sortBy=${filter.sortBy()})}"
                                         th:text="${i + 1}">1</a>
                                 </li>
                                 <li class="page-item" th:classappend="${toursPage.last} ? 'disabled'">
                                     <a class="page-link"
-                                        th:href="@{/tours(page=${toursPage.number + 1}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, startDate=${filter.startDate()}, endDate=${filter.endDate()}, stars=${filter.stars()}, hotOffer=${filter.hotOffer()}, sortBy=${filter.sortBy()})}">
+                                        th:href="@{/tours(page=${toursPage.number + 1}, country=${filter.country()}, minPrice=${filter.minPrice()}, maxPrice=${filter.maxPrice()}, startDate=${filter.startDate()}, endDate=${filter.endDate()}, stars=${filter.stars()}, hotOfferOnly=${filter.hotOfferOnly()}, sortBy=${filter.sortBy()})}">
                                         <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
