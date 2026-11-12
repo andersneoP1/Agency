@@ -482,10 +482,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     loader.setAttribute('aria-hidden', 'false');
                 }
                 clearTimeout(arrivalTimer);
-                // Duration of 1 second (1000ms)
+                // Duration of 0.5 seconds (500ms)
                 arrivalTimer = setTimeout(() => {
                     hideLoader();
-                }, 1000);
+                }, 500);
                 return;
             }
         } catch (e) {}
